@@ -1,217 +1,149 @@
-# MODEL
-# ------------------------------  
-
-data = [{
-	name:"docs"
-	img:"images/cell-docs.png"
-	},{
-	name:"fonts"
-	img:"images/cell-fonts.png"	
-	},{
-	name:"notes"
-	img:"images/cell-notes.png"	
-	},{
-	name: "objs"
-	img: "images/cell-objs.png"	
-	},{
-	name: "props"
-	img: "images/cell-props.png"
-	},{
-	name: "styles"
-	img:"images/cell-styles.png"
-}]
-
-# FUNCS
-# ------------------------------  
-
-# helper func to hide/show
-showHide = (layerName) ->
-	layerName.states.add
-		hide: 
-			opacity: 0
-		show: 
-			opacity: 1
-	layerName.states.animationOptions = curve:"spring(700,80,0)"
-
-
-# Koen's Click/Drag differentiator
-addDraggableClickHandler = (layer, handler) ->
-	
-	# On the touch start, record this layers position on the screen
-	layer.on Events.TouchStart, ->
-		layer._previousScreenFrame = layer.screenFrame
-	
-	layer.on Events.TouchEnd, (event) ->
-		
-		# Get the current position on the screen
-		currentScreenFrame = layer.screenFrame
-		
-		# Compare it with the recorded position at touch start
-		layerNotMoved = \
-			currentScreenFrame.x is layer._previousScreenFrame.x and \
-			currentScreenFrame.y is layer._previousScreenFrame.y
-		
-		# Only if the layer did not move, call the handler 
-		handler.call(layer, event, layer) if layerNotMoved
-
-
-
-# SETUP
-# ------------------------------  
+Framer.Device.deviceType = 'nexus-5-black'
 
 # Variables
-cardHeight= 151
-screenWidth= 640
-screenHeight= 1136
-cells = []
+screenWidth= 1080
+screenHeight= 1920
+index =
+  execution: 100000
+  topBar: 10000
+  header: 1000
+  info: 100
+  list: 1
 
-# Background
 bg = new BackgroundLayer
-	x: 100
-	y: 100
-	width: 300
-	height: 300
-	backgroundColor: "#fff"
-	
-# Table - Cell wrapper 
-table = new Layer 
-	open: false
-	x:0
-	y:190
-	width:640
-	height:909
-	backgroundColor: "transparent"
-table.draggable.enabled = true
-table.draggable.speedX = 0	
-table.states.add
-	top:
-		y: 190
+  backgroundColor: '#555'
 
-# Cells
-[0..data.length-1].map (i) ->
-	
-	cell = new Layer
-		superLayer: table
-		x: 0
-		y: 0 + (i * cardHeight)
-		height: cardHeight
-		width: screenWidth
-		image: data[i].img
-	cells[i] = cell
-	 
-	addDraggableClickHandler cells[i], ->
-		preview_doc.html = data[i].name
-		preview.states.switch "expanded"
-		if preview.states._currentState is "expanded" and table.open is false
-			table.open = true
-			table.animate	
-				properties:
-					y: table.y + 500
-				curve: "spring(800,80,0)"
-				
-		if preview.states._currentState == "collapsed" and table.open is true
-				table.open = false	
-				table.animate
-					properties:
-						y: table.y - 500
-					curve: "spring(800,80,0)"
+topBar = new Layer
+  x: 0
+  y: 0
+  width: screenWidth
+  height: 71
+  image:'images/top-bar.png'
+topBar.index = index.topBar
 
-# Preview - slide down preview panel
-preview = new Layer
-	x: 0
-	y: -510
-	width: 640
-	height: 700
-	backgroundColor: "#D0D8DF"
-preview.draggable.enabled = true
-preview.draggable.speedX = 0
-preview.states.add 
-	collapsed:
-		y: -510
-	expanded:	
-		y: 0
-preview.states.animationOptions = curve:"spring(800,80,0)"		
-# Doc Preview - The image inside the preview panel
-preview_doc = new Layer
-	superLayer: preview
-	x: 30
-	y: 160
-	width: 580
-	height: 800
-	backgroundColor: "#fff"
-	opacity: 0
-preview_doc.html = "This is a preview"
-preview_doc.style = {
-	"padding-top": "100px"
-	"text-align": "center"
-	"color": "#515151"
-}
-# preview_doc.draggable.enabled = true
-# preview_doc.draggable.speedX = 0
-showHide(preview_doc)
-	
+header = new Layer
+  x: 0
+  y: 0
+  width: screenWidth
+  height: 247
+  backgroundColor: 'rgba(68, 132, 246, 1)'
+header.index = index.header
+header.shadowX = 0
+header.shadowBlur = 24
+header.shadowSpread = 12
+header.shadowColor = "rgba(0,0,0,0.2)"
 
-preview_handle = new Layer 
-	superLayer: preview
-	x:0
-	y: preview.height - 110
-	width:640
-	height:110
-	image:"images/handle.png"
+hamburger = new Layer
+  x: 48
+  y: 48 + 71
+  width: 70
+  height: 70
+  image: 'images/ic_menu_white_48dp.png'
+  superLayer: header
+
+pageTitle = new Layer
+  x: 72 * 3
+  y: 48 + 71
+  width: 170
+  height: 70
+  superLayer: header
+  backgroundColor: 'rgba(68, 132, 246, 0)'
+pageTitle.html = 'Title'
+pageTitle.style["font-size"] = "2em"
+pageTitle.style["line-height"] = "1.2em"
+
+info = new Layer
+  x: 0
+  y: 247
+  width: screenWidth
+  height: 1920 - 247
+  backgroundColor: 'rgba(255, 255, 255, 1)'
+info.index = index.info
+
+list = new Layer
+  x: 0
+  y: 1200
+  width: screenWidth
+  height: 1920
+  backgroundColor: 'rgba(255, 255, 255, 1)'
+list.index = index.info
+list.shadowY = 0
+list.shadowBlur = 12
+list.shadowSpread = 0
+list.shadowColor = "rgba(0,0,0,0.2)"
+list.draggable.enabled = true
+list.draggable.speedX = 0
+
+listItem = new Layer
+  x: 0
+  y: 8 * 3
+  width: screenWidth
+  height: 240
+  backgroundColor: 'rgba(255, 255, 255, 1)'
+  superLayer: list
+
+listIcon = new Layer
+  x: 48
+  y: 48
+  width: 144
+  height: 144
+  image:'images/app1.png'
+  superLayer: listItem
+
+execution = new Layer
+  x: 0
+  y: 1200 - (56*3/2)
+  width: screenWidth
+  height: 56*3
+  backgroundColor: 'rgba(255, 5, 255, 0)'
+execution.index = index.execution
+
+button = new Layer
+  x: screenWidth - (56 * 3) - 48
+  y: 0
+  width: 56 * 3
+  height: 56 * 3
+  backgroundColor: 'rgba(231, 76, 60, 1)'
+  superLayer: execution
+button.borderRadius = button.width
+
+softKey = new Layer
+  x: 0
+  y: screenHeight - 145
+  width: screenWidth
+  height: 146
+  image: 'images/soft-key.png'
+info.index = index.info
 
 
-# Top nav menu
-topMenu = new Layer 
-	x:0, y:0, width:640, height:131, image:"images/top_menu.png"
-	
 
-# EVENTS
-# ------------------------------  
 
-yStart = 0
 
-recPreviewStart = (event, layer) ->
-	yStart = event.y
 
-togglePreview = (ev, layer) ->
-	yEnd = ev.y
-	yDelta = yEnd - yStart
-	if preview.y < -510
-		preview.states.switch "collapsed"
-	if yDelta < -20
-		preview.states.switch "collapsed"
-		preview_doc.states.switch "hide"
-	if yDelta > -20
-		preview.states.switch "expanded"
-		preview_doc.states.switch "show"
-	if yDelta > 20
-		preview.states.switch "expanded"
-		preview_doc.states.switch "show"
-	if preview.states._currentState == "expanded" 
-		table.open = true
-		table.animate	
-			properties:
-				y: table.y + 500
-			curve: "spring(800,80,0)"
-				
-	if preview.states._currentState == "collapsed"
-		table.open = false
-		table.animate	
-			properties:
-				y: table.y - 500
-			curve: "spring(800,80,0)"
 
-preview.on(Events.DragStart, recPreviewStart)
-preview.on(Events.DragEnd, togglePreview)
 
-preview.on Events.AnimationEnd, ->			
-	if preview.y > -200
-		preview_doc.states.switch "show"
-		
 
-table.on Events.DragEnd, ->
 
-	if preview.y <= -510
-		if table.y > 190
-			table.states.switch "top", {curve:"spring(800,80,0)"}
 
+
+
+
+
+
+
+
+
+
+
+listOriginX = list.x
+listOriginY = list.y
+list.on Events.DragEnd, (event, layer) ->
+  animation = layer.animate
+    properties:
+      x: listOriginX
+      y: listOriginY
+    curve: "spring"
+    curveOptions:
+      friction: 20
+      tension: 400
+      velocity: 20
