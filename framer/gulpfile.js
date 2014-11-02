@@ -13,5 +13,5 @@ gulp.task('serve', [], function(){
     }
   });
 
-  gulp.watch(['./**/*'], reload);
+  gulp.watch(['./app.coffee', './index.html', './styles/main.css'], reload);
 });
