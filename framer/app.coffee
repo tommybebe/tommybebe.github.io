@@ -10,6 +10,33 @@ index =
   info: 100
   list: 1
 
+class Scene
+  constructor: ()->
+    @states = []
+    @defaultAniOpt = 
+      time: 0.2
+      curve: 'spring'
+      curveOptions:
+        friction: 20
+        tension: 400
+        velocity: 20
+  add: (layer, state, options, animation)->
+    layer.states.add state, options
+    @states.push {
+      layer: layer
+      state: state
+      animation: animation || layer.states.animationOptions
+    }
+  run: (instant)->
+    @states.forEach (item)->
+      _animation = item.layer.states.animationOptions
+      item.layer.states.animationOptions = item.animation || if _animation == {} then defaultAniOpt else {}
+      if instant
+        item.layer.states.switchInstant item.state
+      else
+        item.layer.states.switch item.state
+      item.layer.states.animationOptions = _animation
+
 class Button extends Layer
   constructor: (options)->
     defulatOptions = x:0, y:0, backgroundColor: 'rgba(0, 0, 255, 1)', width: 56*3, height: 56*3
@@ -30,8 +57,9 @@ class Button extends Layer
       scale: 0
       opacity: 1
     ripple.states.animationOptions = 
-      time: 0.8
-      curve: 'ease'
+      time: 0.9
+      # curve: 'ease-out'
+      curve: 'cubic-bezier(0,1,.85,.8)'
     ripple.states.switchInstant 'off'
 
     @on Events.Click, (e, layer)->
@@ -57,6 +85,7 @@ header = new Layer
   width: screenWidth
   height: 247
   backgroundColor: 'rgba(68, 132, 246, 1)'
+header.style['background'] = '-webkit-linear-gradient(right, rgba(168, 132, 146, 0.5) 0%, rgba(68, 132, 246, 0.5) 100%)'
 header.index = index.header
 header.shadowX = 0
 header.shadowBlur = 24
@@ -145,44 +174,6 @@ class ListItem extends Layer
       superLayer: @
     action.html = '<input type="checkbox"/>'
 
-
-
-
-# listItem = new Layer
-#   x: 0
-#   y: 8 * 3
-#   width: screenWidth
-#   height: 240
-#   backgroundColor: 'rgba(255, 255, 255, 1)'
-
-# listItemIcon = new Layer
-#   x: 48
-#   y: 48
-#   width: 36*3
-#   height: 36*3
-#   image:'images/app1.png'
-
-# listItemTitle = new Layer
-#   x: 72*3
-#   y: 48
-#   width: 272 * 3
-#   height: 144
-#   backgroundColor: 'rgba(255, 255, 255, 0)'
-# listItemTitle.html = '<h3 class="list-item-title">Facebook</h3>'
-
-# listItemSubtitle = new Layer
-#   x: 72*3
-#   y: 48 + 48
-#   width: 272 * 3
-#   height: 144
-#   backgroundColor: 'rgba(255, 255, 255, 0)'
-# listItemSubtitle.html = '<h4 class="list-item-subtitle">Secondary line : have some spaces</h4>'
-
-# listItem.addSubLayer listItemIcon
-# listItem.addSubLayer listItemTitle
-# listItem.addSubLayer listItemSubtitle
-# list.addSubLayer listItem
-
 listItems = []
 for i in [0..7]
   item = new ListItem(i)
@@ -239,52 +230,54 @@ info.index = index.info
 
 
 
+blank = new Scene()
+blank.add header, 'blank', x:0, y:-header.height
+
+blank.run true
+
+start = new Scene()
+start.add header, 'start', x:0, y:0
+
+setTimeout ->
+  start.run()
+  # console.log 1
+, 1000
 
 
+# # 
+# button.on Events.Click, (e, layer)->
+#   animation = progress.animate
+#     properties:
+#       x: -1200 + 540
+#       y: -1200 + 860
+#       width: 2400
+#       height: 2400
+#     time: 0.2
 
 
+# # 
+# listOriginX = list.x
+# listOriginY = list.y
 
+# list.states.add 'short', y: 1200
+# list.states.add 'long', y: 500
+# list.states.animationOptions = 
+#   time: 0.2
+#   curve: 'spring'
+#   curveOptions:
+#     friction: 20
+#     tension: 400
+#     velocity: 20
 
-# list drag release > expend list layer
-
-
-
-
-
-# 
-button.on Events.Click, (e, layer)->
-  animation = progress.animate
-    properties:
-      x: -1200 + 540
-      y: -1200 + 860
-      width: 2400
-      height: 2400
-    time: 0.2
-
-
-# 
-listOriginX = list.x
-listOriginY = list.y
-
-list.states.add 'short', y: 1200
-list.states.add 'long', y: 500
-list.states.animationOptions = 
-  time: 0.2
-  curve: 'spring'
-  curveOptions:
-    friction: 20
-    tension: 400
-    velocity: 20
-
-list.on Events.DragMove, (event, layer) ->
-  button.y = layer.y - button.height/2
-list.on Events.DragEnd, (e, layer) ->
-  # long 
-  console.log(e.offsetY)
-  if list.y < 1000
-    list.states.switch 'long'
-    list.draggable.enabled = false
-    button.states.switch 'long'
+# list.on Events.DragMove, (event, layer) ->
+#   button.y = layer.y - button.height/2
+# list.on Events.DragEnd, (e, layer) ->
+#   # long 
+#   console.log(e.offsetY)
+#   if list.y < 1000
+#     list.states.switch 'long'
+#     list.draggable.enabled = false
+#     button.states.switch 'long'
   # animation = layer.animate
   #   properties:
   #     x: listOriginX
