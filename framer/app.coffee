@@ -3,40 +3,76 @@ Framer.Device.deviceType = 'nexus-5-black'
 # Variables
 screenWidth= 1080
 screenHeight= 1920
+fullScreen = x:0, y:0, width:screenWidth, height:screenHeight
 index =
   execution: 100000
   topBar: 10000
   header: 1000
-  info: 100
-  list: 1
+  list: 100
+  info: 1
+
+# animation options
+aniOpt =
+  paper: 
+    time: 1
+    curve: 'ease-out'
+  slow:
+    time: 0.5
+    curve: 'ease-out'
+spring = 
+  time: 0.9
+  curve: 'spring'
+  curveOptions:
+    friction: 20
+    tension: 200
+    velocity: 10
+lightSpring = 
+  time: 0.5
+  curve: 'spring'
+  curveOptions:
+    friction: 20
+    tension: 400
+    velocity: 20
+
+
+
+id = ->
+  '_' + Math.random().toString(36).substr(2, 9)
 
 class Scene
   constructor: ()->
+    @stateName = id()
     @states = []
     @defaultAniOpt = 
-      time: 0.2
-      curve: 'spring'
-      curveOptions:
-        friction: 20
-        tension: 400
-        velocity: 20
-  add: (layer, state, options, animation)->
-    layer.states.add state, options
-    @states.push {
+      time: 0.4
+      curve: 'cubic-bezier(0,1,.35,.9)'
+      # curveOptions:
+      #   friction: 20
+      #   tension: 400
+      #   velocity: 20
+  add: (layer, options, animation)->
+    layer.states.add @stateName, options
+    @states.push
       layer: layer
-      state: state
-      animation: animation || layer.states.animationOptions
-    }
+      animation: animation
   run: (instant)->
-    @states.forEach (item)->
+    @states.forEach (item)=>
       _animation = item.layer.states.animationOptions
-      item.layer.states.animationOptions = item.animation || if _animation == {} then defaultAniOpt else {}
+      item.layer.states.animationOptions = item.animation || if _.isEmpty _animation then @defaultAniOpt else {}
       if instant
-        item.layer.states.switchInstant item.state
+        item.layer.states.switchInstant @stateName
       else
-        item.layer.states.switch item.state
+        item.layer.states.switch @stateName
       item.layer.states.animationOptions = _animation
+    
+    after = (cb)=>
+      _cb = (e, layer)=>
+        @states[0].layer.off Events.AnimationStop, _cb
+        cb()
+      @states[0].layer.on Events.AnimationStop, _cb
 
+    return { after: after }
+    
 class Button extends Layer
   constructor: (options)->
     defulatOptions = x:0, y:0, backgroundColor: 'rgba(0, 0, 255, 1)', width: 56*3, height: 56*3
@@ -69,6 +105,10 @@ class Button extends Layer
       ripple.states.switch 'on'
 
 bg = new BackgroundLayer
+  x:0
+  y:0
+  width: screenWidth
+  height: screenHeight
   backgroundColor: '#555'
 
 topBar = new Layer
@@ -83,9 +123,8 @@ header = new Layer
   x: 0
   y: 0
   width: screenWidth
-  height: 247
-  backgroundColor: 'rgba(68, 132, 246, 1)'
-header.style['background'] = '-webkit-linear-gradient(right, rgba(168, 132, 146, 0.5) 0%, rgba(68, 132, 246, 0.5) 100%)'
+  height: 247+15
+header.style['background'] = '-webkit-linear-gradient(right, rgba(168, 132, 146, 1) 0%, rgba(68, 132, 246, 1) 100%)'
 header.index = index.header
 header.shadowX = 0
 header.shadowBlur = 24
@@ -94,7 +133,7 @@ header.shadowColor = "rgba(0,0,0,0.2)"
 
 hamburger = new Layer
   x: 48
-  y: 48 + 71
+  y: 48 + 71 + 15
   width: 70
   height: 70
   image: 'images/ic_menu_white_48dp.png'
@@ -102,7 +141,7 @@ hamburger = new Layer
 
 pageTitle = new Layer
   x: 72 * 3
-  y: 48 + 71
+  y: 48 + 71 + 15
   width: 170
   height: 70
   superLayer: header
@@ -113,11 +152,19 @@ pageTitle.style["line-height"] = "1.2em"
 
 info = new Layer
   x: 0
-  y: 247
+  y: 0
   width: screenWidth
-  height: 1920 - 247
+  height: screenHeight
   backgroundColor: 'rgba(255, 255, 255, 1)'
 info.index = index.info
+
+indicator = new Layer
+  x:0, y:0, width: 0, height: screenHeight, superLayer: info
+
+infoText = new Layer
+  x:0, y:400, width:screenWidth, height:screenHeight
+  superLayer: info, backgroundColor: 'transparent'
+infoText.html = '<h1 class="info-text">00%</h1>'
 
 list = new Layer
   x: 0
@@ -125,7 +172,7 @@ list = new Layer
   width: screenWidth
   height: 1920
   backgroundColor: 'rgba(255, 255, 255, 1)'
-list.index = index.info
+list.index = index.list
 list.shadowY = 0
 list.shadowBlur = 12
 list.shadowSpread = 0
@@ -219,29 +266,52 @@ progress = new Layer
   superLayer: execution
 progress.borderRadius = 2000
 
-softKey = new Layer
-  x: 0
-  y: screenHeight - 145
-  width: screenWidth
-  height: 146
-  image: 'images/soft-key.png'
-info.index = index.info
+# softKey = new Layer
+#   x: 0
+#   y: screenHeight - 145
+#   width: screenWidth
+#   height: 146
+#   image: 'images/soft-key.png'
+# info.index = index.info
 
-
-
+home = new Layer
+  image: 'images/home.jpg'
+home.index = 1
+splashScreen = new Layer
+  image: 'images/splash-screen.png'
+splashScreen.index = 1
 
 blank = new Scene()
-blank.add header, 'blank', x:0, y:-header.height
-
+blank.add topBar, opacity:0
+blank.add header, x:0, y:-header.height-50
+blank.add list, x:0, y:screenHeight
+blank.add button, scale:0
 blank.run true
 
-start = new Scene()
-start.add header, 'start', x:0, y:0
+beforeStart = new Scene()
+beforeStart.add home, fullScreen
+beforeStart.add splashScreen, x:800, y:1200, opacity:0
+beforeStart.run true
 
-setTimeout ->
-  start.run()
-  # console.log 1
-, 1000
+startApp = new Scene()
+startApp.add splashScreen, _.assign(fullScreen, {opacity:1})
+startApp.add topBar, opacity:1
+startApp.add home, opacity:0
+
+load = new Scene()
+load.add indicator, { width: screenWidth*0.65 }, aniOpt.paper
+load.add splashScreen, { opacity:0 }, aniOpt.slow
+
+loadComplete = new Scene()
+loadComplete.add header, x:0, y:-15
+loadComplete.add list, x:0, y:1200
+loadComplete.add button, { scale:1 }, spring
+
+home.on Events.Click, (e, layer)->
+  startApp.run().after ->
+    load.run().after ->
+      loadComplete.run().after ->
+
 
 
 # # 
