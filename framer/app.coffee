@@ -82,27 +82,30 @@ class Button extends Layer
 
     options.index && @index = options.index
     
-    ripple = new Layer width:options.width, height:options.height, backgroundColor: 'rgba(255, 255, 255, 0.5)'
-    ripple.superLayer = @
-    ripple.borderRadius = 10000
-
-    ripple.states.add 'on',
-      scale: 2
-      opacity: 0
-    ripple.states.add 'off',
-      scale: 0
-      opacity: 1
-    ripple.states.animationOptions = 
-      time: 0.9
-      # curve: 'ease-out'
-      curve: 'cubic-bezier(0,1,.85,.8)'
-    ripple.states.switchInstant 'off'
-
     @on Events.Click, (e, layer)->
+      ripple = new Layer width:options.width, height:options.height, backgroundColor: 'rgba(255, 255, 255, 0.5)'
+      ripple.superLayer = @
+      ripple.borderRadius = '50%'
+      ripple.classList.add 'ripple'
+
+      ripple.states.add 'on',
+        scale: 2
+        opacity: 0
+      ripple.states.add 'off',
+        scale: 0
+        opacity: 1
+      ripple.states.animationOptions = 
+        time: 1.2
+        # curve: 'ease-out'
+        curve: 'cubic-bezier(0,1,.85,.8)'
+      ripple.states.switchInstant 'off'
+
       ripple.midX = e.offsetX
       ripple.midY = e.offsetY
       ripple.states.switchInstant 'off'
       ripple.states.switch 'on'
+      ripple.on Events.AnimationStop, ->
+        ripple.destroy()
 
 bg = new BackgroundLayer
   x:0
@@ -242,7 +245,7 @@ button = new Button
   height: 56 * 3
   backgroundColor: 'rgba(231, 76, 60, 1)'
   superLayer: execution
-button.borderRadius = 2000
+button.borderRadius = '50%'
 button.shadowY = 2*3
 button.shadowBlur = 6*3
 button.shadowSpread = 2*3
@@ -264,7 +267,7 @@ progress = new Layer
   height: 0
   backgroundColor: 'rgba(231, 76, 60, 1)'
   superLayer: execution
-progress.borderRadius = 2000
+progress.borderRadius = '50%'
 
 # softKey = new Layer
 #   x: 0
@@ -365,3 +368,4 @@ home.on Events.Click, (e, layer)->
   #     friction: 20
   #     tension: 400
   #     velocity: 20
+
