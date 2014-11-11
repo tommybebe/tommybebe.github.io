@@ -19,6 +19,14 @@ aniOpt =
   slow:
     time: 0.5
     curve: 'ease-out'
+  spring:
+    time: 0.3
+    curve: 'spring'
+    curveOptions:
+      friction: 30
+      tension: 300
+      velocity: 20
+
 spring = 
   time: 0.9
   curve: 'spring'
@@ -170,8 +178,6 @@ infoText = new Layer
 infoText.html = '<h1 class="info-text">00%</h1>'
 
 list = new Layer
-  x: 0
-  y: 1200
   width: screenWidth
   height: 1920
   backgroundColor: 'rgba(255, 255, 255, 1)'
@@ -183,6 +189,62 @@ list.shadowColor = "rgba(0,0,0,0.2)"
 list.draggable.enabled = true
 list.draggable.speedX = 0
 list.draggable.speedY = 0.5
+
+
+listInner = new Layer
+  width: screenWidth
+  height: list.height
+  backgroundColor: 'rgba(255, 255, 255, 1)'
+  superLayer: list
+listInner.index = list.index + 1
+listInner.draggable.enabled = false
+listInner.draggable.speedX = 0
+
+listInner.on Events.DragMove, (e, layer)->
+  if layer.y > 0
+    layer.draggable.speedY = 0.5
+  else
+    layer.draggable.speedY = 1
+
+
+# states - long or short
+list.states.add 'short', y: 1200
+list.states.add 'long', y: 500
+list.states.animationOptions = aniOpt.spring
+list.on Events.DragMove, (e, layer) ->
+  button.y = layer.y - button.height/2
+list.on Events.DragEnd, (e, layer) ->
+  # long 
+  if list.y < 1000
+    list.states.switch 'long'
+    list.draggable.enabled = false
+    listInner.draggable.enabled = true
+    button.states.switch 'long'
+  else 
+    list.states.switch 'short'
+    list.draggable.enabled = true
+    listInner.draggable.enabled = false
+    button.states.switch 'short'
+
+  # animation = layer.animate
+  #   properties:
+  #     x: listOriginX
+  #     y: listOriginY
+  #   curve: "spring"
+  #   curveOptions:
+  #     friction: 20
+  #     tension: 400
+  #     velocity: 20
+  # animation2 = button.animate
+  #   properties:
+  #     y: listOriginY - button.height/2
+  #   curve: "spring"
+  #   curveOptions:
+  #     friction: 20
+  #     tension: 400
+  #     velocity: 20
+
+
 
 class ListItem extends Layer
   constructor: (index, type)->
@@ -227,7 +289,7 @@ class ListItem extends Layer
 listItems = []
 for i in [0..7]
   item = new ListItem(i)
-  item.superLayer = list
+  item.superLayer = listInner
   listItems.push item
 
 execution = new Layer
@@ -251,7 +313,7 @@ button.shadowBlur = 6*3
 button.shadowSpread = 2*3
 button.shadowColor = "rgba(0,0,0,0.23)"
 button.states.add 'short', y: 1200 - (56*3/2)
-button.states.add 'long', y: screenHeight - (56*3) - (16*3) - (48*3)
+button.states.add 'long', y: 500 - (56*3/2)
 button.states.animationOptions = 
   time: 0.2
   curve: 'spring'
@@ -310,10 +372,10 @@ loadComplete.add header, x:0, y:-15
 loadComplete.add list, x:0, y:1200
 loadComplete.add button, { scale:1 }, spring
 
-home.on Events.Click, (e, layer)->
-  startApp.run().after ->
-    load.run().after ->
-      loadComplete.run().after ->
+# home.on Events.Click, (e, layer)->
+startApp.run().after ->
+  load.run().after ->
+    loadComplete.run().after ->
 
 
 
