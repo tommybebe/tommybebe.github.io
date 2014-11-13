@@ -14,18 +14,21 @@ index =
 # animation options
 aniOpt =
   paper: 
-    time: 1
-    curve: 'ease-out'
+    time: 0.5
+    curve: 'cubic-bezier(0,1,.35,.9)'
   slow:
     time: 0.5
     curve: 'ease-out'
   spring:
-    time: 0.3
+    time: 40
     curve: 'spring'
     curveOptions:
       friction: 30
       tension: 300
       velocity: 20
+  ripple:
+    time: 1.2
+    curve: 'cubic-bezier(0,1,.85,.8)'
 
 spring = 
   time: 0.9
@@ -51,9 +54,9 @@ class Scene
   constructor: ()->
     @stateName = id()
     @states = []
-    @defaultAniOpt = 
-      time: 0.4
-      curve: 'cubic-bezier(0,1,.35,.9)'
+    @defaultAniOpt = aniOpt.paper
+      # time: 0.3
+      # curve: 'cubic-bezier(0,1,.35,.9)'
       # curveOptions:
       #   friction: 20
       #   tension: 400
@@ -66,7 +69,7 @@ class Scene
   run: (instant)->
     @states.forEach (item)=>
       _animation = item.layer.states.animationOptions
-      item.layer.states.animationOptions = item.animation || if _.isEmpty _animation then @defaultAniOpt else {}
+      item.layer.states.animationOptions = item.animation || if _.isEmpty _animation then @defaultAniOpt else _animation
       if instant
         item.layer.states.switchInstant @stateName
       else
@@ -90,30 +93,48 @@ class Button extends Layer
 
     options.index && @index = options.index
     
-    @on Events.Click, (e, layer)->
-      ripple = new Layer width:options.width, height:options.height, backgroundColor: 'rgba(255, 255, 255, 0.5)'
-      ripple.superLayer = @
-      ripple.borderRadius = '50%'
-      ripple.classList.add 'ripple'
+    # ripple event sequence.
+    # 1. 터치 시작과 함께 터치된 곳에서 0x0 크기 + 0% 투명도를 + parent의 1.5배 scale ripple 이 하나 생겨난다.
+    # 2. 터치 release 하기 전까지 애니메이션을 진행하며, 
+    # 3. 터치 좌표가 변경될 경우 좌료를 따라 움직인다.
+    # 4. 터치 release 되면 ripple을 커지기 전의 상태로 돌린다.
+    # 5. 단, 완전히 ripple이 커지기 전에 release 이벤트가 일어나면, 커지는 애니메이션을 기다린 후 뒤의 애니메이션을 진행한다.
+    ripple = new Layer width:options.width, height:options.height, backgroundColor: 'rgba(255, 255, 255, 0.3)'
+    ripple.superLayer = @
+    ripple.borderRadius = '50%'
+    ripple.states.add 'on', scale: 1.5, opacity: 1
+    ripple.states.add 'blur', scale: 1.2, opacity: 0
+    ripple.states.add 'off', scale: 0, opacity: 0
+    ripple.states.animationOptions = aniOpt.paper
+    ripple.states.switchInstant 'off'
 
-      ripple.states.add 'on',
-        scale: 2
-        opacity: 0
-      ripple.states.add 'off',
-        scale: 0
-        opacity: 1
-      ripple.states.animationOptions = 
-        time: 1.2
-        # curve: 'ease-out'
-        curve: 'cubic-bezier(0,1,.85,.8)'
+
+    hold = ->
+      console.log('hold')
+      ripple.hold = true
+    blur = ->
+      console.log('blur')
+      ripple.states.switch 'blur'
+    click = false
+
+    @on Events.TouchStart, (e, layer)->
+      click = false
+      console.log('start')
       ripple.states.switchInstant 'off'
-
       ripple.midX = e.offsetX
       ripple.midY = e.offsetY
-      ripple.states.switchInstant 'off'
       ripple.states.switch 'on'
-      ripple.on Events.AnimationStop, ->
-        ripple.destroy()
+
+    @on Events.TouchEnd, ->
+      click = true
+      ripple.states.switch 'blur'
+
+
+
+    @on Events.DragMove, (e, layer)->
+      ripple.midX = e.offsetX
+      ripple.midY = e.offsetY
+
 
 bg = new BackgroundLayer
   x:0
@@ -190,7 +211,6 @@ list.draggable.enabled = true
 list.draggable.speedX = 0
 list.draggable.speedY = 0.5
 
-
 listInner = new Layer
   width: screenWidth
   height: list.height
@@ -199,52 +219,46 @@ listInner = new Layer
 listInner.index = list.index + 1
 listInner.draggable.enabled = false
 listInner.draggable.speedX = 0
-
-listInner.on Events.DragMove, (e, layer)->
-  if layer.y > 0
-    layer.draggable.speedY = 0.5
-  else
-    layer.draggable.speedY = 1
-
+listInner.states.add 'defalut', y:0, 
+listInner.states.animationOptions = aniOpt.spring
 
 # states - long or short
 list.states.add 'short', y: 1200
 list.states.add 'long', y: 500
 list.states.animationOptions = aniOpt.spring
+list.on Events.DragStart, (e, layer) ->
+  button.y = layer.y - button.height/2
 list.on Events.DragMove, (e, layer) ->
   button.y = layer.y - button.height/2
-list.on Events.DragEnd, (e, layer) ->
+
+setListPosition = (e, layer) ->
   # long 
   if list.y < 1000
     list.states.switch 'long'
     list.draggable.enabled = false
     listInner.draggable.enabled = true
+    # listInner.scrollVertical = true
     button.states.switch 'long'
+    layer.off Events.DragEnd, setListPosition
   else 
+    list.states.switch 'short'
+    button.states.switch 'short'
+
+list.on Events.DragEnd, setListPosition
+
+setListInnerPosition = (e, layer)->
+  if layer.y > 0
+    layer.states.switch 'defalut'
+  if layer.y > 400
+    console.log(1)
     list.states.switch 'short'
     list.draggable.enabled = true
     listInner.draggable.enabled = false
     button.states.switch 'short'
-
-  # animation = layer.animate
-  #   properties:
-  #     x: listOriginX
-  #     y: listOriginY
-  #   curve: "spring"
-  #   curveOptions:
-  #     friction: 20
-  #     tension: 400
-  #     velocity: 20
-  # animation2 = button.animate
-  #   properties:
-  #     y: listOriginY - button.height/2
-  #   curve: "spring"
-  #   curveOptions:
-  #     friction: 20
-  #     tension: 400
-  #     velocity: 20
-
-
+    list.on Events.DragEnd, setListPosition
+    listInner.off Events.DragEnd, setListInnerPosition
+    
+listInner.on Events.DragEnd, setListInnerPosition
 
 class ListItem extends Layer
   constructor: (index, type)->
@@ -364,7 +378,7 @@ startApp.add topBar, opacity:1
 startApp.add home, opacity:0
 
 load = new Scene()
-load.add indicator, { width: screenWidth*0.65 }, aniOpt.paper
+load.add indicator, { width: screenWidth*0.65 }
 load.add splashScreen, { opacity:0 }, aniOpt.slow
 
 loadComplete = new Scene()
