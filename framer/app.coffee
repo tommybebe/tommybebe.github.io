@@ -102,33 +102,35 @@ class Button extends Layer
     ripple = new Layer width:options.width, height:options.height, backgroundColor: 'rgba(255, 255, 255, 0.3)'
     ripple.superLayer = @
     ripple.borderRadius = '50%'
-    ripple.states.add 'on', scale: 1.5, opacity: 1
+    ripple.states.add 'focus', scale: 1.5, opacity: 1
     ripple.states.add 'blur', scale: 1.2, opacity: 0
     ripple.states.add 'off', scale: 0, opacity: 0
     ripple.states.animationOptions = aniOpt.paper
     ripple.states.switchInstant 'off'
 
-
-    hold = ->
-      console.log('hold')
-      ripple.hold = true
-    blur = ->
-      console.log('blur')
-      ripple.states.switch 'blur'
-    click = false
+    focusEnd = (e, layer)->
+      layer.focusEnd = true
+      layer.off Events.AnimationEnd, focusEnd
+    blurStart = (e, layer)->
+      layer.focusEnd = false
+      layer.states.switch 'blur'
+      layer.off Events.AnimationEnd, blurStart
 
     @on Events.TouchStart, (e, layer)->
-      click = false
-      console.log('start')
       ripple.states.switchInstant 'off'
       ripple.midX = e.offsetX
       ripple.midY = e.offsetY
-      ripple.states.switch 'on'
+      ripple.states.switch 'focus'
+      ripple.on Events.AnimationEnd, focusEnd
 
-    @on Events.TouchEnd, ->
-      click = true
-      ripple.states.switch 'blur'
-
+    @on Events.TouchEnd, (e, layer)->
+      # 애니메이션 끝나고, 홀드된 상태
+      if ripple.focusEnd
+        ripple.states.switch 'blur'
+      # 애니메이션 끝내기 전에 손을 뗀 경우 기다린 다음 애니메이션 진행
+      else
+        ripple.on Events.AnimationEnd, blurStart
+      ripple.focusEnd = false
 
 
     @on Events.DragMove, (e, layer)->
@@ -231,6 +233,23 @@ list.on Events.DragStart, (e, layer) ->
 list.on Events.DragMove, (e, layer) ->
   button.y = layer.y - button.height/2
 
+
+setListInnerPosition = (e, layer)->
+  if layer.y > 0
+    layer.states.switch 'defalut'
+  if layer.y > 400
+    console.log(1)
+    list.states.switch 'short'
+    
+    list.animate
+      properties:
+        y:1000
+    button.states.switch 'short'
+    list.draggable.enabled = true
+    listInner.draggable.enabled = false
+    list.on Events.DragEnd, setListPosition
+    listInner.off Events.DragEnd, setListInnerPosition
+
 setListPosition = (e, layer) ->
   # long 
   if list.y < 1000
@@ -240,25 +259,21 @@ setListPosition = (e, layer) ->
     # listInner.scrollVertical = true
     button.states.switch 'long'
     layer.off Events.DragEnd, setListPosition
+#     listInner.on Events.DragEnd, setListInnerPosition
+    listInner.on Events.DragMove, (e, layer)->
+      if layer.y > 300
+        layer.y = 0
+        list.states.switch 'short'
+        list.on Events.DragEnd, setListPosition
+        button.states.switch 'short'
+        list.draggable.enabled = true
+        listInner.draggable.enabled = false
   else 
     list.states.switch 'short'
     button.states.switch 'short'
 
 list.on Events.DragEnd, setListPosition
 
-setListInnerPosition = (e, layer)->
-  if layer.y > 0
-    layer.states.switch 'defalut'
-  if layer.y > 400
-    console.log(1)
-    list.states.switch 'short'
-    list.draggable.enabled = true
-    listInner.draggable.enabled = false
-    button.states.switch 'short'
-    list.on Events.DragEnd, setListPosition
-    listInner.off Events.DragEnd, setListInnerPosition
-    
-listInner.on Events.DragEnd, setListInnerPosition
 
 class ListItem extends Layer
   constructor: (index, type)->
