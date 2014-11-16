@@ -7,24 +7,15 @@ Reset
 html, body {
   height: 100%;
   font-family: 'Roboto', sans-serif;
-}
-
-
-h1.info-text {
+  color: rgba(0,0,0,0.87);
   text-align: center;
-  line-height: 1em;
-  font-size: 4em;
-  color: rgba(0,0,0,0.87);
-}
-h3.list-item-title {
-  font-size: 1.5em;
-  color: rgba(0,0,0,0.87);
-}
-h4.list-item-subtitle {
-  font-size: 1.3em;
-  color: rgba(0,0,0,0.54);
 }
 
+span {
+  text-align: center;
+  font-size: 1.8em;
+  line-height: 1.4em !important;
+}
 
 /*http://dogfalo.github.io/materialize/sass.html#tab5*/
 .z-depth-1 {
