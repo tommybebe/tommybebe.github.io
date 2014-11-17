@@ -5,8 +5,10 @@ Framer.Device.deviceType = "iphone-6-silver"
 screenWidth = Framer.Device.screen.width
 screenHeight = Framer.Device.screen.height
 color = 
+  white: '#fff'
   red: 'rgba(231,76,60,1)'
   blue: 'rgba(52, 152, 219,1.0)'
+  gray: 'rgba(189, 189, 189, 1)'
   glass: 'rgba(255,255,255,0.9)'
   darkGlass: 'rgba(0,0,0,0.3)'
 index = 
@@ -84,7 +86,7 @@ id = ->
   '_' + Math.random().toString(36).substr(2, 9)
 
 class Scene
-  constructor: ()->
+  constructor: ->
     @stateName = id()
     @states = []
     @defaultAniOpt = aniOpt.paper
@@ -125,26 +127,24 @@ fab = new Button
 fab.borderRadius = '50%'
 fab.classList.add 'z-depth-3'
 window.onmousemove = (e)->
-  x = screenWidth / 2 / 30
-  y = screenHeight / 2 / 30
-  rotationX = (e.layerX - fab.midX) / x
-  rotationY = (e.layerY - fab.midY) / y
+  rotationX = ((-100 + e.x - fab.midX) / screenWidth / 2) * 100
+  rotationY = ((-100 + e.y - fab.midY) / screenHeight / 2) * 100
   fab.rotationY = rotationX
   fab.rotationX = -rotationY
 
 
 contacts = new L
-  width: screenWidth, height: screenHeight
+  x:screenWidth, width: screenWidth, height: screenHeight
   backgroundColor: color.glass
-contacts.states.add 'open', x:0
-contacts.states.add 'close', x:screenWidth
+contacts.states.animationOptions = aniOpt.paper
+contacts.states.add 'open', x:0, opacity:1
+contacts.states.add 'close', x:screenWidth, opacity:0
+contacts.states.switchInstant 'open'
 toggleContacts = ->
-  if contacts.status
-    contacts.status = false
-    contacts.states.switch 'open'
-  else
-    contacts.status = true
+  if contacts.states.state is 'open'
     contacts.states.switch 'close'
+  else
+    contacts.states.switch 'open'
 
 lnb = new L
   width: screenWidth, height: dp(80)
@@ -153,21 +153,49 @@ lnb = new L
 lnb.classList.add 'z-depth-1'
 
 back = new Button
-  x: dp(16), y: dp(24)+dp(10), width: dp(36), height:dp(36)
-  backgroundColor: 'transparent'
+  x: dp(16), y: dp(34), width: dp(36), height:dp(36), backgroundColor: 'transparent'
   superLayer: lnb
 back.borderRadius = '50%'
-back.html = '<span class="icon-keyboard-backspace"></span>'
+back.html = '<span class="icon-close"></span>'
 back.on Events.Click, (e, layer)->
-  contacts.states.next()
+  toggleContacts()
 
-fab.on Events.Click, (e, layer)->
-  contacts.states.next()
+searchIcon = new Button
+  x: dp(360-16-36), y: dp(34), width: dp(36), height:dp(36), backgroundColor: 'transparent'
+  superLayer: lnb
+searchIcon.borderRadius = '50%'
+searchIcon.html = '<span class="icon-search"></span>'
+searchIcon.on Events.Click, (e, layer)->
 
+searchInput = new L
+  x: dp(72), y: dp(36), width: dp(360-72-16), height: dp(32), backgroundColor: 'transparent'
+  superLayer: lnb
+searchInput.html = '<input type="text"/>'
 
+contactList = new L
+  y: dp(80), width: screenWidth, height: screenHeight - dp(80), backgroundColor: 'transparent'
+  superLayer: contacts
 
+class Contact extends Layer
+  constructor: (options)->
+    super options
+
+contactItem = new Contact
+  width: screenWidth, height: dp(72), backgroundColor: 'transparent'
+  superLayer: contactList
+
+user = new L
+  x: dp(16), y: dp(16), width: dp(40), height: dp(40), backgroundColor: color.gray
+  superLayer: contactItem
+user.borderRadius = '50%'
+user.html = '<span class="icon-person"></span>'
+user.classList.add 'user-picture'
 
 statusBar = new L
   width: screenWidth, height: dp(24)
   backgroundColor: color.darkGlass
 statusBar.index = index.top
+
+
+fab.on Events.Click, (e, layer)->
+  toggleContacts()
