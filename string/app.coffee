@@ -67,9 +67,17 @@ class Button extends Layer
       ripple.states.switch 'blur'
 
     @on Events.TouchStart, (e, layer)->
+      # ios 에서는 이벤트 객체가 뭔가 다름.
+      if e.changedTouches and e.changedTouches[0]
+        x = e.changedTouches[0].clientX
+        y = e.changedTouches[0].clientY
+      else
+        x = e.offsetX
+        y = e.offsetY
+
       ripple.states.switchInstant 'off'
-      ripple.midX = e.offsetX
-      ripple.midY = e.offsetY
+      ripple.midX = x
+      ripple.midY = y
       ripple.states.switch 'focus'
       ripple.once Events.AnimationEnd, focusEnd
 
@@ -180,25 +188,61 @@ contactList = new L
   superLayer: contacts
 
 class Contact extends Layer
-  constructor: (options)->
-    super options
+  constructor: (index, data)->
+    super
+      y: dp(8)+(index*dp(88)), width: screenWidth, height: dp(88), backgroundColor: 'transparent'
 
-contactItem = new Contact
-  width: screenWidth, height: dp(72), backgroundColor: 'transparent'
-  superLayer: contactList
+    picture = new Layer
+      x: dp(16), y: dp(16), width: dp(56), height: dp(56), image: data.picture, superLayer: @
+    picture.borderRadius = '50%'
 
-user = new L
-  x: dp(16), y: dp(16), width: dp(40), height: dp(40), backgroundColor: color.gray
-  superLayer: contactItem
-user.borderRadius = '50%'
-user.html = '<span class="icon-person"></span>'
-user.classList.add 'user-picture'
+    name = new Layer
+      x: dp(72), y: dp(16), width: screenWidth-dp(72+72), backgroundColor: 'transparent', superLayer: @
+    name.html = '<h3 class="person-name">'+data.name+'</h3>'
+
+    # title = new Layer
+    #   x: 72*3
+    #   y: 48
+    #   width: 272 * 3
+    #   height: 144
+    #   backgroundColor: 'rgba(255, 255, 255, 0)'
+    #   superLayer: @
+    # title.html = '<h3 class="list-item-title">'+app[i]+'</h3>'
+
+    # subtitle = new Layer
+    #   x: 72*3
+    #   y: 16*3 + 20*3
+    #   width: 272 * 3
+    #   height: 144
+    #   backgroundColor: 'rgba(255, 255, 255, 0)'
+    #   superLayer: @
+    # subtitle.html = '<h4 class="list-item-subtitle">Secondary line : have some spaces</h4>'
+
+    # action = new Layer
+    #   x: (360-16)*3
+    #   y: 16*3 + 20*3
+    #   width: 272 * 3
+    #   height: 144
+    #   backgroundColor: 'rgba(255, 255, 255, 0)'
+    #   superLayer: @
+    # action.html = '<input type="checkbox"/>'
+
+
+contactsData.forEach (data, index)->
+  item = new Contact index, data
+  item.superLayer = contactList
+
+# user = new L
+#   x: dp(16), y: dp(16), width: dp(40), height: dp(40), backgroundColor: color.gray
+#   superLayer: contactItem
+# user.borderRadius = '50%'
+# user.html = '<span class="icon-person"></span>'
+# user.classList.add 'user-picture'
 
 statusBar = new L
   width: screenWidth, height: dp(24)
   backgroundColor: color.darkGlass
 statusBar.index = index.top
-
 
 fab.on Events.Click, (e, layer)->
   toggleContacts()
