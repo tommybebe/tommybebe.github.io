@@ -22,7 +22,7 @@ input {
   font-size: 1.4em;
   line-height: 1em;
   background: transparent;
-  padding: 8px;
+  padding: 0;
   border: none;
   outline: none;
 }
@@ -31,6 +31,9 @@ input {
   color: #fff;
   font-size: 2.8em;
   line-height: 0.9em !important;
+}
+h3.person-name {
+  text-align: left;
 }
 
 /*http://dogfalo.github.io/materialize/sass.html#tab5*/

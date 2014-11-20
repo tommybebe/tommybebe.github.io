@@ -25,15 +25,16 @@ else if md.tablet()
 # PC인 경우 넥서스5로 설정. 1080 x 1920,  width=360dp
 # dp 계수는 강제 3
 else
-  dpx = 3
-  Framer.Device.deviceType = "nexus-5-black"
+  dpx = 2
+  Framer.Device.deviceType = "iphone-6-silver"
+  # Framer.Device.deviceType = "nexus-5-black"
+  device =
+    width: Framer.Device.screen.width
+    height: Framer.Device.screen.height
 
-# device setting
-Framer.Device.deviceType = "iphone-6-silver"
+dp = dpFuncMaker dpx
 
 # variables
-screenWidth = Framer.Device.screen.width
-screenHeight = Framer.Device.screen.height
 color = 
   white: '#fff'
   red: 'rgba(231,76,60,1)'
@@ -55,14 +56,11 @@ aniOpt =
       tension: 300
       velocity: 20
   ripple:
-    time: 0.2
-    curve: 'cubic-bezier(.05,.5,.5,.95)'
+    time: 0.4
+    curve: 'ease-out'
 
 # Utils
 L = Layer
-dp = (val)->
-  pxToDp = screenWidth / 480
-  return Math.round val * pxToDp
 
 class Button extends Layer
   constructor: (options)->
@@ -72,20 +70,21 @@ class Button extends Layer
     super(options)
     options.index && @index = options.index
     if options.backgroundColor is 'transparent'
-      rippleColor = 'rgba(0, 0, 0, 0.3)'
+      rippleColor = 'rgba(0, 0, 0, 0.2)'
     else 
       rippleColor = 'rgba(255, 255, 255, 0.3)'
+    rippleSize = if options.width > options.height then options.width else options.height
     # ripple event sequence.
     # 1. 터치 시작과 함께 터치된 곳에서 0x0 크기 + 0% 투명도를 + parent의 1.5배 scale ripple 이 하나 생겨난다.
     # 2. 터치 release 하기 전까지 애니메이션을 진행하며, 
     # 3. 터치 좌표가 변경될 경우 좌료를 따라 움직인다.
     # 4. 터치 release 되면 ripple을 커지기 전의 상태로 돌린다.
     # 5. 단, 완전히 ripple이 커지기 전에 release 이벤트가 일어나면, 커지는 애니메이션을 기다린 후 뒤의 애니메이션을 진행한다.
-    ripple = new Layer width:options.width, height:options.height, backgroundColor: rippleColor
+    ripple = new Layer width:rippleSize, height:rippleSize, backgroundColor: rippleColor
     ripple.superLayer = @
     ripple.borderRadius = '50%'
-    ripple.states.add 'focus', scale: 1.8, opacity: 1
-    ripple.states.add 'blur', scale: 2, opacity: 0
+    ripple.states.add 'focus', scale: 2, opacity: 1
+    ripple.states.add 'blur', scale: 2.4, opacity: 0
     ripple.states.add 'off', scale: 0, opacity: 0
     ripple.states.animationOptions = aniOpt.ripple
     ripple.states.switchInstant 'off'
@@ -158,25 +157,25 @@ bg = new BackgroundLayer({backgroundColor:"white"})
 
 
 fab = new Button
-  midX: screenWidth/2, midY: screenHeight/2
+  midX: device.width/2, midY: device.height/2
   width: dp 56
   height: dp 56
   backgroundColor: color.red
 fab.borderRadius = '50%'
 fab.classList.add 'z-depth-3'
 window.onmousemove = (e)->
-  rotationX = ((-100 + e.x - fab.midX) / screenWidth / 2) * 100
-  rotationY = ((-100 + e.y - fab.midY) / screenHeight / 2) * 100
+  rotationX = ((-100 + e.x - fab.midX) / device.width / 2) * 100
+  rotationY = ((-100 + e.y - fab.midY) / device.height / 2) * 100
   fab.rotationY = rotationX
   fab.rotationX = -rotationY
 
 
 contacts = new L
-  x:screenWidth, width: screenWidth, height: screenHeight
+  x:device.width, width: device.width, height: device.height
   backgroundColor: color.glass
 contacts.states.animationOptions = aniOpt.paper
 contacts.states.add 'open', x:0, opacity:1
-contacts.states.add 'close', x:screenWidth, opacity:0
+contacts.states.add 'close', x:device.width, opacity:0
 contacts.states.switchInstant 'open'
 toggleContacts = ->
   if contacts.states.state is 'open'
@@ -185,13 +184,13 @@ toggleContacts = ->
     contacts.states.switch 'open'
 
 lnb = new L
-  width: screenWidth, height: dp(80)
+  width: device.width, height: dp(80)
   backgroundColor: color.white
   superLayer: contacts
 lnb.classList.add 'z-depth-1'
 
 back = new Button
-  x: dp(16), y: dp(34), width: dp(36), height:dp(36), backgroundColor: 'transparent'
+  x: dp(16), y: dp(34), width: dp(36), height:dp(40), backgroundColor: 'transparent'
   superLayer: lnb
 back.borderRadius = '50%'
 back.html = '<span class="icon-close"></span>'
@@ -199,35 +198,54 @@ back.on Events.Click, (e, layer)->
   toggleContacts()
 
 searchIcon = new Button
-  x: screenWidth-dp(16+36), y: dp(34), width: dp(36), height:dp(36), backgroundColor: 'transparent'
+  x: device.width-dp(16+40), y: dp(33), width: dp(40), height:dp(40), backgroundColor: 'transparent'
   superLayer: lnb
 searchIcon.borderRadius = '50%'
 searchIcon.html = '<span class="icon-search"></span>'
 searchIcon.on Events.Click, (e, layer)->
 
 searchInput = new L
-  x: dp(72), y: dp(36), width: dp(360-72-16), height: dp(32), backgroundColor: 'transparent'
+  x: device.width, y: dp(40), width: device.width-dp(72), height: dp(32), opacity:0, backgroundColor: 'transparent'
   superLayer: lnb
-searchInput.html = '<input type="text"/>'
+searchInput.html = '<input type="text" placeholder="Search"/>'
+
+searchClose = new L
+  x: device.width-dp(16+40), y: dp(40), width: device.width-dp(72), height: dp(32), opacity:0, backgroundColor: 'transparent'
+  superLayer: lnb
+searchInput.html = '<input type="text" placeholder="Search"/>'
+
+searchStart = new Scene()
+searchStart.add searchIcon, opacity:0
+searchStart.add searchInput, opacity:1, x: dp(72)
+
+searchEnd = new Scene()
+searchEnd.add searchIcon, opacity:1
+searchEnd.add searchInput, opacity:0, x: device.width
+
+searchIcon.on Events.Click, (e, layer)->
+  searchStart.run()
 
 
 contactsData = [{'name':'simpson lewis','email':'lewis.simpson44@example.com','phone':'(575)-729-8783','picture':'http://api.randomuser.me/portraits/med/men/77.jpg'},{'name':'neal dean','email':'dean.neal71@example.com','phone':'(930)-520-7208','picture':'http://api.randomuser.me/portraits/med/men/27.jpg'},{'name':'snyder jim','email':'jim.snyder17@example.com','phone':'(761)-678-5746','picture':'http://api.randomuser.me/portraits/med/men/99.jpg'},{'name':'holland reginald','email':'reginald.holland23@example.com','phone':'(385)-382-3964','picture':'http://api.randomuser.me/portraits/med/men/88.jpg'},{'name':'nichols maureen','email':'maureen.nichols47@example.com','phone':'(499)-776-1889','picture':'http://api.randomuser.me/portraits/med/women/50.jpg'},{'name':'alexander abigail','email':'abigail.alexander84@example.com','phone':'(728)-873-5092','picture':'http://api.randomuser.me/portraits/med/women/73.jpg'},{'name':'flores caroline','email':'caroline.flores35@example.com','phone':'(746)-797-7001','picture':'http://api.randomuser.me/portraits/med/women/45.jpg'},{'name':'gardner soham','email':'soham.gardner40@example.com','phone':'(235)-493-5463','picture':'http://api.randomuser.me/portraits/med/men/36.jpg'},{'name':'jensen armando','email':'armando.jensen61@example.com','phone':'(849)-136-3128','picture':'http://api.randomuser.me/portraits/med/men/84.jpg'},{'name':'garza kathy','email':'kathy.garza17@example.com','phone':'(939)-257-1162','picture':'http://api.randomuser.me/portraits/med/women/90.jpg'},{'name':'garza theodore','email':'theodore.garza39@example.com','phone':'(334)-380-1887','picture':'http://api.randomuser.me/portraits/med/men/55.jpg'},{'name':'graves rene','email':'rene.graves26@example.com','phone':'(224)-718-5960','picture':'http://api.randomuser.me/portraits/med/men/18.jpg'},{'name':'jackson alice','email':'alice.jackson21@example.com','phone':'(386)-163-3197','picture':'http://api.randomuser.me/portraits/med/women/33.jpg'},{'name':'adams tomothy','email':'tomothy.adams10@example.com','phone':'(584)-602-7508','picture':'http://api.randomuser.me/portraits/med/men/13.jpg'},{'name':'barnes joe','email':'joe.barnes54@example.com','phone':'(321)-788-2852','picture':'http://api.randomuser.me/portraits/med/men/36.jpg'},{'name':'long candice','email':'candice.long73@example.com','phone':'(659)-213-3150','picture':'http://api.randomuser.me/portraits/med/women/81.jpg'},{'name':'schmidt levi','email':'levi.schmidt72@example.com','phone':'(335)-164-1701','picture':'http://api.randomuser.me/portraits/med/men/87.jpg'},{'name':'cole virgil','email':'virgil.cole38@example.com','phone':'(211)-544-3174','picture':'http://api.randomuser.me/portraits/med/men/41.jpg'},{'name':'price annette','email':'annette.price29@example.com','phone':'(385)-704-9883','picture':'http://api.randomuser.me/portraits/med/women/96.jpg'},{'name':'myers duane','email':'duane.myers30@example.com','phone':'(423)-209-6890','picture':'http://api.randomuser.me/portraits/med/men/88.jpg'},{'name':'fowler bob','email':'bob.fowler86@example.com','phone':'(645)-412-1125','picture':'http://api.randomuser.me/portraits/med/men/98.jpg'},{'name':'reynolds terri','email':'terri.reynolds73@example.com','phone':'(100)-509-2414','picture':'http://api.randomuser.me/portraits/med/women/79.jpg'},{'name':'johnson kaylee','email':'kaylee.johnson66@example.com','phone':'(108)-839-9944','picture':'http://api.randomuser.me/portraits/med/women/58.jpg'},{'name':'bradley lily','email':'lily.bradley81@example.com','phone':'(216)-732-4939','picture':'http://api.randomuser.me/portraits/med/women/23.jpg'},{'name':'gutierrez june','email':'june.gutierrez98@example.com','phone':'(896)-233-6708','picture':'http://api.randomuser.me/portraits/med/women/68.jpg'},{'name':'murphy sylvia','email':'sylvia.murphy68@example.com','phone':'(489)-525-7620','picture':'http://api.randomuser.me/portraits/med/women/31.jpg'},{'name':'wheeler priscilla','email':'priscilla.wheeler98@example.com','phone':'(893)-595-1659','picture':'http://api.randomuser.me/portraits/med/women/55.jpg'},{'name':'morales hailey','email':'hailey.morales20@example.com','phone':'(452)-543-9678','picture':'http://api.randomuser.me/portraits/med/women/2.jpg'},{'name':'ward bruce','email':'bruce.ward54@example.com','phone':'(393)-387-5693','picture':'http://api.randomuser.me/portraits/med/men/89.jpg'},{'name':'warren beth','email':'beth.warren76@example.com','phone':'(625)-169-1077','picture':'http://api.randomuser.me/portraits/med/women/7.jpg'},{'name':'cruz adrian','email':'adrian.cruz45@example.com','phone':'(717)-233-7500','picture':'http://api.randomuser.me/portraits/med/men/62.jpg'},{'name':'hunt gilbert','email':'gilbert.hunt11@example.com','phone':'(604)-730-4186','picture':'http://api.randomuser.me/portraits/med/men/45.jpg'},{'name':'lynch evan','email':'evan.lynch37@example.com','phone':'(169)-631-2429','picture':'http://api.randomuser.me/portraits/med/men/94.jpg'},{'name':'lopez fred','email':'fred.lopez71@example.com','phone':'(102)-562-9957','picture':'http://api.randomuser.me/portraits/med/men/45.jpg'},{'name':'martinez hunter','email':'hunter.martinez90@example.com','phone':'(908)-839-8299','picture':'http://api.randomuser.me/portraits/med/men/0.jpg'},{'name':'wilson charlie','email':'charlie.wilson84@example.com','phone':'(121)-832-5699','picture':'http://api.randomuser.me/portraits/med/men/56.jpg'},{'name':'carlson carrie','email':'carrie.carlson34@example.com','phone':'(713)-992-5808','picture':'http://api.randomuser.me/portraits/med/women/0.jpg'},{'name':'taylor nicholas','email':'nicholas.taylor97@example.com','phone':'(458)-651-8087','picture':'http://api.randomuser.me/portraits/med/men/83.jpg'},{'name':'harper gary','email':'gary.harper91@example.com','phone':'(131)-562-8120','picture':'http://api.randomuser.me/portraits/med/men/20.jpg'},{'name':'holt connie','email':'connie.holt56@example.com','phone':'(173)-946-5481','picture':'http://api.randomuser.me/portraits/med/women/17.jpg'}]
 
 contactList = new L
-  y: dp(80), width: screenWidth, height: screenHeight - dp(80), backgroundColor: 'transparent'
+  y: dp(80), width: device.width, height: device.height - dp(80), backgroundColor: 'transparent'
   superLayer: contacts
 
-class Contact extends Layer
+
+
+
+class Contact extends Button
   constructor: (index, data)->
     super
-      y: dp(8)+(index*dp(88)), width: screenWidth, height: dp(88), backgroundColor: 'transparent'
+      y: dp(8)+(index*dp(72)), width: device.width, height: dp(72), backgroundColor: 'transparent'
 
     picture = new Layer
-      x: dp(16), y: dp(16), width: dp(56), height: dp(56), image: data.picture, superLayer: @
+      x: dp(16), y: dp(16), width: dp(40), height: dp(40), image: data.picture, superLayer: @
     picture.borderRadius = '50%'
 
     name = new Layer
-      x: dp(72), y: dp(16), width: screenWidth-dp(72+72), backgroundColor: 'transparent', superLayer: @
+      x: dp(72), y: dp(26), width: device.width-dp(72+72), backgroundColor: 'transparent', superLayer: @
     name.html = '<h3 class="person-name">'+data.name+'</h3>'
 
     # title = new Layer
@@ -270,7 +288,7 @@ contactsData.forEach (data, index)->
 # user.classList.add 'user-picture'
 
 statusBar = new L
-  width: screenWidth, height: dp(24)
+  width: device.width, height: dp(24)
   backgroundColor: color.darkGlass
 statusBar.index = index.top
 
