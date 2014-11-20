@@ -1,3 +1,33 @@
+# Define screen category and size, and dp
+md = new MobileDetect(window.navigator.userAgent)
+
+device =
+  width: Framer.Device.screen.width
+  height: Framer.Device.screen.height
+
+dpFuncMaker = (dpx)->
+  (n)->
+    dpx * n
+
+# 전화기인 경우 풀 사이즈 출력, Framer.Device.screen 정보 조회 후 width/dp 결정
+# Framer.Device.screen.width 구해서 window.devicePixelRatio로 나눔.
+# dp계산시의 곱 계수는 window.devicePixelRatio가 됨.
+if md.phone()
+  dpx = window.devicePixelRatio
+# 타블렛인 경우 풀 사이즈 출력하지 않고, 절반 사이즈로 여백을 더함. 나머지 계산은 전화기와 동일
+# Framer.Device.screen.width 구해서 window.devicePixelRatio로 나눔. 여기서 절반만 씀.
+# dp계산시의 곱 계수는 window.devicePixelRatio/2가 됨.
+# 화면에 여백 절반 더함.
+else if md.tablet()
+  dpx = window.devicePixelRatio / 2
+  device.width = device.width / 2
+  device.height = device.height / 2
+# PC인 경우 넥서스5로 설정. 1080 x 1920,  width=360dp
+# dp 계수는 강제 3
+else
+  dpx = 3
+  Framer.Device.deviceType = "nexus-5-black"
+
 # device setting
 Framer.Device.deviceType = "iphone-6-silver"
 
@@ -31,7 +61,7 @@ aniOpt =
 # Utils
 L = Layer
 dp = (val)->
-  pxToDp = screenWidth / 360
+  pxToDp = screenWidth / 480
   return Math.round val * pxToDp
 
 class Button extends Layer
@@ -169,7 +199,7 @@ back.on Events.Click, (e, layer)->
   toggleContacts()
 
 searchIcon = new Button
-  x: dp(360-16-36), y: dp(34), width: dp(36), height:dp(36), backgroundColor: 'transparent'
+  x: screenWidth-dp(16+36), y: dp(34), width: dp(36), height:dp(36), backgroundColor: 'transparent'
   superLayer: lnb
 searchIcon.borderRadius = '50%'
 searchIcon.html = '<span class="icon-search"></span>'
