@@ -98,12 +98,12 @@ class Button extends Layer
     @on Events.TouchStart, (e, layer)->
       # ios 에서는 이벤트 객체가 뭔가 다름.
       if e.changedTouches and e.changedTouches[0]
-        x = e.changedTouches[0].clientX
-        y = e.changedTouches[0].clientY
+        x = e.changedTouches[0].clientX - @x
+        y = e.changedTouches[0].clientY - @y
       else
         x = e.offsetX
         y = e.offsetY
-
+            
       ripple.states.switchInstant 'off'
       ripple.midX = x
       ripple.midY = y
@@ -190,7 +190,7 @@ lnb = new L
 lnb.classList.add 'z-depth-1'
 
 back = new Button
-  x: dp(16), y: dp(34), width: dp(36), height:dp(40), backgroundColor: 'transparent'
+  x: dp(16), y: dp(34), width: dp(40), height:dp(40), backgroundColor: 'transparent'
   superLayer: lnb
 back.borderRadius = '50%'
 back.html = '<span class="icon-close"></span>'
@@ -210,7 +210,7 @@ searchInput = new L
 searchInput.html = '<input type="text" placeholder="Search"/>'
 
 searchClose = new L
-  x: device.width-dp(16+40), y: dp(40), width: device.width-dp(72), height: dp(32), opacity:0, backgroundColor: 'transparent'
+  x: device.width-dp(16+40), y: dp(40), width: dp(32), height: dp(32), opacity:0, backgroundColor: 'transparent'
   superLayer: lnb
 searchInput.html = '<input type="text" placeholder="Search"/>'
 
@@ -231,9 +231,18 @@ contactsData = [{'name':'simpson lewis','email':'lewis.simpson44@example.com','p
 contactList = new L
   y: dp(80), width: device.width, height: device.height - dp(80), backgroundColor: 'transparent'
   superLayer: contacts
+contactList.scroll = true
 
+reminderPop = new L
+  x: device.width, width: device.width-dp(72), height: device.height, backgroundColor: color.glass
 
-
+class reminderSettingOptions extends Layer
+  constructor: (options)->
+    super options
+    radio = new L
+      superLayer: @
+    label = new L
+      superLayer: @
 
 class Contact extends Button
   constructor: (index, data)->
@@ -247,34 +256,6 @@ class Contact extends Button
     name = new Layer
       x: dp(72), y: dp(26), width: device.width-dp(72+72), backgroundColor: 'transparent', superLayer: @
     name.html = '<h3 class="person-name">'+data.name+'</h3>'
-
-    # title = new Layer
-    #   x: 72*3
-    #   y: 48
-    #   width: 272 * 3
-    #   height: 144
-    #   backgroundColor: 'rgba(255, 255, 255, 0)'
-    #   superLayer: @
-    # title.html = '<h3 class="list-item-title">'+app[i]+'</h3>'
-
-    # subtitle = new Layer
-    #   x: 72*3
-    #   y: 16*3 + 20*3
-    #   width: 272 * 3
-    #   height: 144
-    #   backgroundColor: 'rgba(255, 255, 255, 0)'
-    #   superLayer: @
-    # subtitle.html = '<h4 class="list-item-subtitle">Secondary line : have some spaces</h4>'
-
-    # action = new Layer
-    #   x: (360-16)*3
-    #   y: 16*3 + 20*3
-    #   width: 272 * 3
-    #   height: 144
-    #   backgroundColor: 'rgba(255, 255, 255, 0)'
-    #   superLayer: @
-    # action.html = '<input type="checkbox"/>'
-
 
 contactsData.forEach (data, index)->
   item = new Contact index, data
