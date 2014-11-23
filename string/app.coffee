@@ -38,6 +38,7 @@ dp = dpFuncMaker dpx
 color = 
   white: '#fff'
   red: 'rgba(231,76,60,1)'
+  green: '#4CAF50'
   blue: 'rgba(52, 152, 219,1.0)'
   gray: 'rgba(189, 189, 189, 1)'
   glass: 'rgba(255,255,255,0.9)'
@@ -49,14 +50,13 @@ aniOpt =
     time: 0.3
     curve: 'ease-out'
   spring:
-    time: 40
     curve: 'spring'
     curveOptions:
-      friction: 30
-      tension: 300
-      velocity: 20
+      tension: 500
+      friction: 35
+      velocity: 10
   ripple:
-    time: 0.4
+    time: 0.5
     curve: 'ease-out'
 
 # Utils
@@ -151,6 +151,58 @@ class Scene
     return { after: after }
 
 
+class ToggleLayer extends Layer
+  constructor: (options, open, close)->
+    super options
+    @states.animationOptions = aniOpt.paper
+    @states.add 'open', open || { x:0, opacity:1 }
+    @states.add 'close', close || { x:device.width, opacity:0 }
+    @toggle = ->
+      if @states.state is 'open'
+        @states.switch 'close'
+      else
+        @states.switch 'open'
+
+
+class Radio extends Layer
+  constructor: (options, check)->
+    checkColor = color.green
+    uncheckColor = '#5a5a5a'
+    options = x: options.x, y: options.y, width: dp(20), height: dp(20), backgroundColor: uncheckColor
+    super options
+    @borderRadius = '50%'
+    @force2d = true
+    @clip = false
+
+    inner = new Layer midX:@width/2, midY:@height/2, width:@width-dp(4), height:@height-dp(4), backgroundColor:color.white, superLayer:@
+    inner.borderRadius = '50%'
+
+    checked = new Layer midX:@width/2, midY:@height/2, width:@width-dp(10), height:@height-dp(10), backgroundColor:checkColor, superLayer:@
+    checked.borderRadius = '50%'
+    checked.scale = 0
+    checked.states.add 'true', scale: 1
+    checked.states.add 'false', scale: 0
+    checked.states.animationOptions = aniOpt.spring
+      # curve: 'spring(1000, 10, 10)'
+
+    ripple = new Button midX:@width/2, midY:@height/2, width:@width*2.2, height:@height*2.2, backgroundColor:'transparent', superLayer:@
+    ripple.borderRadius = '50%'
+
+    if check
+      checked.states.switchInstant 'true'
+    else
+      checked.states.switchInstant 'false'
+
+    @on Events.Click, ->
+      console.log 1
+      if checked.states.state is 'true'
+        @backgroundColor = uncheckColor
+        checked.states.switch 'false'
+      else
+        @backgroundColor = checkColor
+        checked.states.switch 'true'
+
+
 
 bg = new BackgroundLayer({backgroundColor:"white"})
 
@@ -170,18 +222,8 @@ window.onmousemove = (e)->
   fab.rotationX = -rotationY
 
 
-contacts = new L
-  x:device.width, width: device.width, height: device.height
-  backgroundColor: color.glass
-contacts.states.animationOptions = aniOpt.paper
-contacts.states.add 'open', x:0, opacity:1
-contacts.states.add 'close', x:device.width, opacity:0
-contacts.states.switchInstant 'open'
-toggleContacts = ->
-  if contacts.states.state is 'open'
-    contacts.states.switch 'close'
-  else
-    contacts.states.switch 'open'
+contacts = new ToggleLayer
+  x:device.width, width: device.width, height: device.height, backgroundColor: color.glass
 
 lnb = new L
   width: device.width, height: dp(80)
@@ -195,7 +237,7 @@ back = new Button
 back.borderRadius = '50%'
 back.html = '<span class="icon-close"></span>'
 back.on Events.Click, (e, layer)->
-  toggleContacts()
+  contacts.toggle()
 
 searchIcon = new Button
   x: device.width-dp(16+40), y: dp(33), width: dp(40), height:dp(40), backgroundColor: 'transparent'
@@ -233,8 +275,8 @@ contactList = new L
   superLayer: contacts
 contactList.scroll = true
 
-reminderPop = new L
-  x: device.width, width: device.width-dp(72), height: device.height, backgroundColor: color.glass
+reminderPop = new ToggleLayer { x: device.width, y: dp(24), width: device.width-dp(72), height: device.height-dp(24), backgroundColor: color.glass }, { x: dp(72), opacity: 1 }
+reminderPop.classList.add 'z-depth-3'
 
 class reminderSettingOptions extends Layer
   constructor: (options)->
@@ -260,6 +302,10 @@ class Contact extends Button
 contactsData.forEach (data, index)->
   item = new Contact index, data
   item.superLayer = contactList
+  item.on Events.Click, ->
+    reminderPop.toggle()
+    contacts.blur = 5
+
 
 # user = new L
 #   x: dp(16), y: dp(16), width: dp(40), height: dp(40), backgroundColor: color.gray
@@ -274,4 +320,5 @@ statusBar = new L
 statusBar.index = index.top
 
 fab.on Events.Click, (e, layer)->
-  toggleContacts()
+  contacts.toggle()
+
