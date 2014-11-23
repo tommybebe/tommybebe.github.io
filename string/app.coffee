@@ -166,9 +166,9 @@ class ToggleLayer extends Layer
 
 class Radio extends Layer
   constructor: (options, check)->
-    checkColor = color.green
-    uncheckColor = '#5a5a5a'
-    options = x: options.x, y: options.y, width: dp(20), height: dp(20), backgroundColor: uncheckColor
+    @checkColor = color.green
+    @uncheckColor = '#5a5a5a'
+    options = x: options.x, y: options.y, width: dp(20), height: dp(20), backgroundColor: @uncheckColor, superLayer:options.superLayer
     super options
     @borderRadius = '50%'
     @force2d = true
@@ -177,31 +177,32 @@ class Radio extends Layer
     inner = new Layer midX:@width/2, midY:@height/2, width:@width-dp(4), height:@height-dp(4), backgroundColor:color.white, superLayer:@
     inner.borderRadius = '50%'
 
-    checked = new Layer midX:@width/2, midY:@height/2, width:@width-dp(10), height:@height-dp(10), backgroundColor:checkColor, superLayer:@
-    checked.borderRadius = '50%'
-    checked.scale = 0
-    checked.states.add 'true', scale: 1
-    checked.states.add 'false', scale: 0
-    checked.states.animationOptions = aniOpt.spring
+    @checked = new Layer midX:@width/2, midY:@height/2, width:@width-dp(10), height:@height-dp(10), backgroundColor:@checkColor, superLayer:@
+    @checked.borderRadius = '50%'
+    @checked.scale = 0
+    @checked.states.add 'true', scale: 1
+    @checked.states.add 'false', scale: 0
+    @checked.states.animationOptions = aniOpt.spring
       # curve: 'spring(1000, 10, 10)'
 
     ripple = new Button midX:@width/2, midY:@height/2, width:@width*2.2, height:@height*2.2, backgroundColor:'transparent', superLayer:@
     ripple.borderRadius = '50%'
 
     if check
-      checked.states.switchInstant 'true'
+      @checked.states.switchInstant 'true'
     else
-      checked.states.switchInstant 'false'
+      @checked.states.switchInstant 'false'
 
     @on Events.Click, ->
-      console.log 1
-      if checked.states.state is 'true'
-        @backgroundColor = uncheckColor
-        checked.states.switch 'false'
-      else
-        @backgroundColor = checkColor
-        checked.states.switch 'true'
+      @toggle()
 
+  toggle: Utils.debounce 0.1, ->
+    if @checked.states.state is 'true'
+      @backgroundColor = @uncheckColor
+      @checked.states.switch 'false'
+    else
+      @backgroundColor = @checkColor
+      @checked.states.switch 'true'
 
 
 bg = new BackgroundLayer({backgroundColor:"white"})
@@ -215,11 +216,34 @@ fab = new Button
   backgroundColor: color.red
 fab.borderRadius = '50%'
 fab.classList.add 'z-depth-3'
-window.onmousemove = (e)->
-  rotationX = ((-100 + e.x - fab.midX) / device.width / 2) * 100
-  rotationY = ((-100 + e.y - fab.midY) / device.height / 2) * 100
-  fab.rotationY = rotationX
-  fab.rotationX = -rotationY
+
+fab.states.animationOptions = aniOpt.spring
+fab.states.add 'defalut',
+  x: device.width - fab.width - dp(16)
+  y: device.height - fab.height - dp(16)
+  scale: 1
+fab.states.add 'hide',
+  x: device.width - fab.width - dp(16)
+  y: device.height - fab.height - dp(16)
+  scale: 0
+
+fab.on Events.Click, (e, layer)->
+  if layer.states.state is 'defalut'
+    contacts.toggle()
+    reminderPop.toggle()
+    reminderPopClose.toggle()
+    contacts.blur = 0
+    remindUser.scale = 0
+  else 
+    layer.states.switch 'hide'
+    contacts.toggle()
+
+
+# window.onmousemove = (e)->
+#   rotationX = ((-100 + e.x - fab.midX) / device.width / 2) * 100
+#   rotationY = ((-100 + e.y - fab.midY) / device.height / 2) * 100
+#   fab.rotationY = rotationX
+#   fab.rotationX = -rotationY
 
 
 contacts = new ToggleLayer
@@ -235,7 +259,7 @@ back = new Button
   x: dp(16), y: dp(34), width: dp(40), height:dp(40), backgroundColor: 'transparent'
   superLayer: lnb
 back.borderRadius = '50%'
-back.html = '<span class="icon-close"></span>'
+back.html = '<span class="icon icon-close"></span>'
 back.on Events.Click, (e, layer)->
   contacts.toggle()
 
@@ -243,7 +267,7 @@ searchIcon = new Button
   x: device.width-dp(16+40), y: dp(33), width: dp(40), height:dp(40), backgroundColor: 'transparent'
   superLayer: lnb
 searchIcon.borderRadius = '50%'
-searchIcon.html = '<span class="icon-search"></span>'
+searchIcon.html = '<span class="icon icon-search"></span>'
 searchIcon.on Events.Click, (e, layer)->
 
 searchInput = new L
@@ -268,23 +292,28 @@ searchIcon.on Events.Click, (e, layer)->
   searchStart.run()
 
 
-contactsData = [{'name':'simpson lewis','email':'lewis.simpson44@example.com','phone':'(575)-729-8783','picture':'http://api.randomuser.me/portraits/med/men/77.jpg'},{'name':'neal dean','email':'dean.neal71@example.com','phone':'(930)-520-7208','picture':'http://api.randomuser.me/portraits/med/men/27.jpg'},{'name':'snyder jim','email':'jim.snyder17@example.com','phone':'(761)-678-5746','picture':'http://api.randomuser.me/portraits/med/men/99.jpg'},{'name':'holland reginald','email':'reginald.holland23@example.com','phone':'(385)-382-3964','picture':'http://api.randomuser.me/portraits/med/men/88.jpg'},{'name':'nichols maureen','email':'maureen.nichols47@example.com','phone':'(499)-776-1889','picture':'http://api.randomuser.me/portraits/med/women/50.jpg'},{'name':'alexander abigail','email':'abigail.alexander84@example.com','phone':'(728)-873-5092','picture':'http://api.randomuser.me/portraits/med/women/73.jpg'},{'name':'flores caroline','email':'caroline.flores35@example.com','phone':'(746)-797-7001','picture':'http://api.randomuser.me/portraits/med/women/45.jpg'},{'name':'gardner soham','email':'soham.gardner40@example.com','phone':'(235)-493-5463','picture':'http://api.randomuser.me/portraits/med/men/36.jpg'},{'name':'jensen armando','email':'armando.jensen61@example.com','phone':'(849)-136-3128','picture':'http://api.randomuser.me/portraits/med/men/84.jpg'},{'name':'garza kathy','email':'kathy.garza17@example.com','phone':'(939)-257-1162','picture':'http://api.randomuser.me/portraits/med/women/90.jpg'},{'name':'garza theodore','email':'theodore.garza39@example.com','phone':'(334)-380-1887','picture':'http://api.randomuser.me/portraits/med/men/55.jpg'},{'name':'graves rene','email':'rene.graves26@example.com','phone':'(224)-718-5960','picture':'http://api.randomuser.me/portraits/med/men/18.jpg'},{'name':'jackson alice','email':'alice.jackson21@example.com','phone':'(386)-163-3197','picture':'http://api.randomuser.me/portraits/med/women/33.jpg'},{'name':'adams tomothy','email':'tomothy.adams10@example.com','phone':'(584)-602-7508','picture':'http://api.randomuser.me/portraits/med/men/13.jpg'},{'name':'barnes joe','email':'joe.barnes54@example.com','phone':'(321)-788-2852','picture':'http://api.randomuser.me/portraits/med/men/36.jpg'},{'name':'long candice','email':'candice.long73@example.com','phone':'(659)-213-3150','picture':'http://api.randomuser.me/portraits/med/women/81.jpg'},{'name':'schmidt levi','email':'levi.schmidt72@example.com','phone':'(335)-164-1701','picture':'http://api.randomuser.me/portraits/med/men/87.jpg'},{'name':'cole virgil','email':'virgil.cole38@example.com','phone':'(211)-544-3174','picture':'http://api.randomuser.me/portraits/med/men/41.jpg'},{'name':'price annette','email':'annette.price29@example.com','phone':'(385)-704-9883','picture':'http://api.randomuser.me/portraits/med/women/96.jpg'},{'name':'myers duane','email':'duane.myers30@example.com','phone':'(423)-209-6890','picture':'http://api.randomuser.me/portraits/med/men/88.jpg'},{'name':'fowler bob','email':'bob.fowler86@example.com','phone':'(645)-412-1125','picture':'http://api.randomuser.me/portraits/med/men/98.jpg'},{'name':'reynolds terri','email':'terri.reynolds73@example.com','phone':'(100)-509-2414','picture':'http://api.randomuser.me/portraits/med/women/79.jpg'},{'name':'johnson kaylee','email':'kaylee.johnson66@example.com','phone':'(108)-839-9944','picture':'http://api.randomuser.me/portraits/med/women/58.jpg'},{'name':'bradley lily','email':'lily.bradley81@example.com','phone':'(216)-732-4939','picture':'http://api.randomuser.me/portraits/med/women/23.jpg'},{'name':'gutierrez june','email':'june.gutierrez98@example.com','phone':'(896)-233-6708','picture':'http://api.randomuser.me/portraits/med/women/68.jpg'},{'name':'murphy sylvia','email':'sylvia.murphy68@example.com','phone':'(489)-525-7620','picture':'http://api.randomuser.me/portraits/med/women/31.jpg'},{'name':'wheeler priscilla','email':'priscilla.wheeler98@example.com','phone':'(893)-595-1659','picture':'http://api.randomuser.me/portraits/med/women/55.jpg'},{'name':'morales hailey','email':'hailey.morales20@example.com','phone':'(452)-543-9678','picture':'http://api.randomuser.me/portraits/med/women/2.jpg'},{'name':'ward bruce','email':'bruce.ward54@example.com','phone':'(393)-387-5693','picture':'http://api.randomuser.me/portraits/med/men/89.jpg'},{'name':'warren beth','email':'beth.warren76@example.com','phone':'(625)-169-1077','picture':'http://api.randomuser.me/portraits/med/women/7.jpg'},{'name':'cruz adrian','email':'adrian.cruz45@example.com','phone':'(717)-233-7500','picture':'http://api.randomuser.me/portraits/med/men/62.jpg'},{'name':'hunt gilbert','email':'gilbert.hunt11@example.com','phone':'(604)-730-4186','picture':'http://api.randomuser.me/portraits/med/men/45.jpg'},{'name':'lynch evan','email':'evan.lynch37@example.com','phone':'(169)-631-2429','picture':'http://api.randomuser.me/portraits/med/men/94.jpg'},{'name':'lopez fred','email':'fred.lopez71@example.com','phone':'(102)-562-9957','picture':'http://api.randomuser.me/portraits/med/men/45.jpg'},{'name':'martinez hunter','email':'hunter.martinez90@example.com','phone':'(908)-839-8299','picture':'http://api.randomuser.me/portraits/med/men/0.jpg'},{'name':'wilson charlie','email':'charlie.wilson84@example.com','phone':'(121)-832-5699','picture':'http://api.randomuser.me/portraits/med/men/56.jpg'},{'name':'carlson carrie','email':'carrie.carlson34@example.com','phone':'(713)-992-5808','picture':'http://api.randomuser.me/portraits/med/women/0.jpg'},{'name':'taylor nicholas','email':'nicholas.taylor97@example.com','phone':'(458)-651-8087','picture':'http://api.randomuser.me/portraits/med/men/83.jpg'},{'name':'harper gary','email':'gary.harper91@example.com','phone':'(131)-562-8120','picture':'http://api.randomuser.me/portraits/med/men/20.jpg'},{'name':'holt connie','email':'connie.holt56@example.com','phone':'(173)-946-5481','picture':'http://api.randomuser.me/portraits/med/women/17.jpg'}]
-
 contactList = new L
   y: dp(80), width: device.width, height: device.height - dp(80), backgroundColor: 'transparent'
   superLayer: contacts
 contactList.scroll = true
 
+reminderPopClose = new ToggleLayer x:device.width, width: device.width, height: device.height, backgroundColor: 'transparent'
+
+remindUser = new Layer width:dp(40), height:dp(40), scale:0
+remindUser.borderRadius = '50%'
+
 reminderPop = new ToggleLayer { x: device.width, y: dp(24), width: device.width-dp(72), height: device.height-dp(24), backgroundColor: color.glass }, { x: dp(72), opacity: 1 }
 reminderPop.classList.add 'z-depth-3'
+reminderPop.on Events.Click, ->
 
-class reminderSettingOptions extends Layer
-  constructor: (options)->
-    super options
-    radio = new L
-      superLayer: @
-    label = new L
-      superLayer: @
+
+class ReminderSetting extends Layer
+  constructor: (index, labelText)->
+    super
+      y: device.height/7+(index*dp(72)), width: device.width-dp(72), height: dp(72), backgroundColor: 'transparent'
+    radio = new Radio x:dp(26), y:dp(26), superLayer:@
+    label = new L x:dp(72), y:dp(26), width:device.width-dp(72+72), backgroundColor: 'transparent', superLayer: @
+    label.html = '<div class="label">'+labelText+'</div>'
 
 class Contact extends Button
   constructor: (index, data)->
@@ -299,13 +328,38 @@ class Contact extends Button
       x: dp(72), y: dp(26), width: device.width-dp(72+72), backgroundColor: 'transparent', superLayer: @
     name.html = '<h3 class="person-name">'+data.name+'</h3>'
 
+
+reminderPopClose.on Events.Click, ->
+  reminderPop.toggle()
+  reminderPopClose.toggle()
+  contacts.blur = 0
+  remindUser.scale = 0
+
+
+contactsData = [{'name':'simpson lewis','email':'lewis.simpson44@example.com','phone':'(575)-729-8783','picture':'http://api.randomuser.me/portraits/med/men/77.jpg'},{'name':'neal dean','email':'dean.neal71@example.com','phone':'(930)-520-7208','picture':'http://api.randomuser.me/portraits/med/men/27.jpg'},{'name':'snyder jim','email':'jim.snyder17@example.com','phone':'(761)-678-5746','picture':'http://api.randomuser.me/portraits/med/men/99.jpg'},{'name':'holland reginald','email':'reginald.holland23@example.com','phone':'(385)-382-3964','picture':'http://api.randomuser.me/portraits/med/men/88.jpg'},{'name':'nichols maureen','email':'maureen.nichols47@example.com','phone':'(499)-776-1889','picture':'http://api.randomuser.me/portraits/med/women/50.jpg'},{'name':'alexander abigail','email':'abigail.alexander84@example.com','phone':'(728)-873-5092','picture':'http://api.randomuser.me/portraits/med/women/73.jpg'},{'name':'flores caroline','email':'caroline.flores35@example.com','phone':'(746)-797-7001','picture':'http://api.randomuser.me/portraits/med/women/45.jpg'},{'name':'gardner soham','email':'soham.gardner40@example.com','phone':'(235)-493-5463','picture':'http://api.randomuser.me/portraits/med/men/36.jpg'},{'name':'jensen armando','email':'armando.jensen61@example.com','phone':'(849)-136-3128','picture':'http://api.randomuser.me/portraits/med/men/84.jpg'},{'name':'garza kathy','email':'kathy.garza17@example.com','phone':'(939)-257-1162','picture':'http://api.randomuser.me/portraits/med/women/90.jpg'},{'name':'garza theodore','email':'theodore.garza39@example.com','phone':'(334)-380-1887','picture':'http://api.randomuser.me/portraits/med/men/55.jpg'},{'name':'graves rene','email':'rene.graves26@example.com','phone':'(224)-718-5960','picture':'http://api.randomuser.me/portraits/med/men/18.jpg'},{'name':'jackson alice','email':'alice.jackson21@example.com','phone':'(386)-163-3197','picture':'http://api.randomuser.me/portraits/med/women/33.jpg'},{'name':'adams tomothy','email':'tomothy.adams10@example.com','phone':'(584)-602-7508','picture':'http://api.randomuser.me/portraits/med/men/13.jpg'},{'name':'barnes joe','email':'joe.barnes54@example.com','phone':'(321)-788-2852','picture':'http://api.randomuser.me/portraits/med/men/36.jpg'},{'name':'long candice','email':'candice.long73@example.com','phone':'(659)-213-3150','picture':'http://api.randomuser.me/portraits/med/women/81.jpg'},{'name':'schmidt levi','email':'levi.schmidt72@example.com','phone':'(335)-164-1701','picture':'http://api.randomuser.me/portraits/med/men/87.jpg'},{'name':'cole virgil','email':'virgil.cole38@example.com','phone':'(211)-544-3174','picture':'http://api.randomuser.me/portraits/med/men/41.jpg'},{'name':'price annette','email':'annette.price29@example.com','phone':'(385)-704-9883','picture':'http://api.randomuser.me/portraits/med/women/96.jpg'},{'name':'myers duane','email':'duane.myers30@example.com','phone':'(423)-209-6890','picture':'http://api.randomuser.me/portraits/med/men/88.jpg'},{'name':'fowler bob','email':'bob.fowler86@example.com','phone':'(645)-412-1125','picture':'http://api.randomuser.me/portraits/med/men/98.jpg'},{'name':'reynolds terri','email':'terri.reynolds73@example.com','phone':'(100)-509-2414','picture':'http://api.randomuser.me/portraits/med/women/79.jpg'},{'name':'johnson kaylee','email':'kaylee.johnson66@example.com','phone':'(108)-839-9944','picture':'http://api.randomuser.me/portraits/med/women/58.jpg'},{'name':'bradley lily','email':'lily.bradley81@example.com','phone':'(216)-732-4939','picture':'http://api.randomuser.me/portraits/med/women/23.jpg'},{'name':'gutierrez june','email':'june.gutierrez98@example.com','phone':'(896)-233-6708','picture':'http://api.randomuser.me/portraits/med/women/68.jpg'},{'name':'murphy sylvia','email':'sylvia.murphy68@example.com','phone':'(489)-525-7620','picture':'http://api.randomuser.me/portraits/med/women/31.jpg'},{'name':'wheeler priscilla','email':'priscilla.wheeler98@example.com','phone':'(893)-595-1659','picture':'http://api.randomuser.me/portraits/med/women/55.jpg'},{'name':'morales hailey','email':'hailey.morales20@example.com','phone':'(452)-543-9678','picture':'http://api.randomuser.me/portraits/med/women/2.jpg'},{'name':'ward bruce','email':'bruce.ward54@example.com','phone':'(393)-387-5693','picture':'http://api.randomuser.me/portraits/med/men/89.jpg'},{'name':'warren beth','email':'beth.warren76@example.com','phone':'(625)-169-1077','picture':'http://api.randomuser.me/portraits/med/women/7.jpg'},{'name':'cruz adrian','email':'adrian.cruz45@example.com','phone':'(717)-233-7500','picture':'http://api.randomuser.me/portraits/med/men/62.jpg'},{'name':'hunt gilbert','email':'gilbert.hunt11@example.com','phone':'(604)-730-4186','picture':'http://api.randomuser.me/portraits/med/men/45.jpg'},{'name':'lynch evan','email':'evan.lynch37@example.com','phone':'(169)-631-2429','picture':'http://api.randomuser.me/portraits/med/men/94.jpg'},{'name':'lopez fred','email':'fred.lopez71@example.com','phone':'(102)-562-9957','picture':'http://api.randomuser.me/portraits/med/men/45.jpg'},{'name':'martinez hunter','email':'hunter.martinez90@example.com','phone':'(908)-839-8299','picture':'http://api.randomuser.me/portraits/med/men/0.jpg'},{'name':'wilson charlie','email':'charlie.wilson84@example.com','phone':'(121)-832-5699','picture':'http://api.randomuser.me/portraits/med/men/56.jpg'},{'name':'carlson carrie','email':'carrie.carlson34@example.com','phone':'(713)-992-5808','picture':'http://api.randomuser.me/portraits/med/women/0.jpg'},{'name':'taylor nicholas','email':'nicholas.taylor97@example.com','phone':'(458)-651-8087','picture':'http://api.randomuser.me/portraits/med/men/83.jpg'},{'name':'harper gary','email':'gary.harper91@example.com','phone':'(131)-562-8120','picture':'http://api.randomuser.me/portraits/med/men/20.jpg'},{'name':'holt connie','email':'connie.holt56@example.com','phone':'(173)-946-5481','picture':'http://api.randomuser.me/portraits/med/women/17.jpg'}]
 contactsData.forEach (data, index)->
   item = new Contact index, data
   item.superLayer = contactList
   item.on Events.Click, ->
     reminderPop.toggle()
-    contacts.blur = 5
+    reminderPopClose.toggle()
+    contacts.blur = 8
 
+    remindUser.image = data.picture
+    remindUser.scale = 1
+    remindUser.x = dp 16
+    remindUser.y = item.y + dp(26+70)
+
+
+reminderSettingOptions = [ 'Every day', 'Every Week', 'Every 2 Week', 'Every Month', 'Every 2 Month', 'Every Year']
+reminderSettingOptions.forEach (option, index)->
+  setting = new ReminderSetting index, option
+  setting.superLayer = reminderPop
+  setting.on Events.Click, (e, layer)->
+    layer.subLayers[0].toggle()
+
+    fab.index = 1000000000000
+    fab.states.switch 'defalut'
 
 # user = new L
 #   x: dp(16), y: dp(16), width: dp(40), height: dp(40), backgroundColor: color.gray
@@ -319,6 +373,5 @@ statusBar = new L
   backgroundColor: color.darkGlass
 statusBar.index = index.top
 
-fab.on Events.Click, (e, layer)->
-  contacts.toggle()
+
 

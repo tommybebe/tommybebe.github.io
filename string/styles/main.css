@@ -11,7 +11,7 @@ html, body {
   text-align: center;
 }
 
-span {
+span.icon {
   text-align: center;
   font-size: 1.8em;
   line-height: 1.4em !important;
@@ -34,6 +34,11 @@ input {
 }
 h3.person-name {
   text-align: left;
+}
+div.label {
+  text-align: left;
+  font-size: 1.1em;
+  line-height: 1.2em;
 }
 
 /*http://dogfalo.github.io/materialize/sass.html#tab5*/
