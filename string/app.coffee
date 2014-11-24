@@ -50,10 +50,11 @@ aniOpt =
     time: 0.3
     curve: 'ease-out'
   spring:
+    time: 0.1
     curve: 'spring'
     curveOptions:
       tension: 500
-      friction: 35
+      friction: 20
       velocity: 10
   ripple:
     time: 0.5
@@ -216,6 +217,13 @@ fab = new Button
   backgroundColor: color.red
 fab.borderRadius = '50%'
 fab.classList.add 'z-depth-3'
+
+fabAddIcon = new L
+  midX: fab.width/2, midY: fab.height/2, width: dp(40), height: dp(40), backgroundColor: 'transparent', superLayer:fab
+fabAddIcon.html = '<span class="fab icon icon-add"></span>'
+fabDoneIcon = new L
+  midX: fab.width/2, midY: fab.height/2, width: dp(40), height: dp(40), backgroundColor: 'transparent', opacity:0, superLayer:fab
+fabDoneIcon.html = '<span class="fab icon icon-done"></span>'
 
 fab.states.animationOptions = aniOpt.spring
 fab.states.add 'defalut',

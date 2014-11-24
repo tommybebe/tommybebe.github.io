@@ -16,7 +16,11 @@ span.icon {
   font-size: 1.8em;
   line-height: 1.4em !important;
 }
-
+span.fab.icon {
+  color: #fff;
+  font-size: 2.4em;
+  line-height: 1.1em !important;
+}
 input {
   float: left;
   font-size: 1.4em;
