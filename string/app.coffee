@@ -44,7 +44,11 @@ color =
   glass: 'rgba(255,255,255,0.9)'
   darkGlass: 'rgba(0,0,0,0.3)'
 index = 
-  top: 10000000
+  five: 100000000
+  four: 1000000
+  three: 10000
+  two:  100
+  one:  1
 aniOpt =
   paper: 
     time: 0.3
@@ -129,18 +133,25 @@ class Scene
     @states = []
     @defaultAniOpt = aniOpt.paper
   add: (layer, options, animation)->
-    layer.states.add @stateName, options
-    @states.push
-      layer: layer
-      animation: animation
+    if _.isString options
+      @states.push
+        layer: layer
+        animation: animation
+        stateName: options
+    else
+      layer.states.add @stateName, options
+      @states.push
+        layer: layer
+        animation: animation
   run: (instant)->
     @states.forEach (item)=>
       _animation = item.layer.states.animationOptions
       item.layer.states.animationOptions = item.animation || if _.isEmpty _animation then @defaultAniOpt else _animation
+      stateName = item.stateName || @stateName
       if instant
-        item.layer.states.switchInstant @stateName
+        item.layer.states.switchInstant stateName
       else
-        item.layer.states.switch @stateName
+        item.layer.states.switch stateName
       item.layer.states.animationOptions = _animation
     
     after = (cb)=>
@@ -208,6 +219,8 @@ class Radio extends Layer
 
 bg = new BackgroundLayer({backgroundColor:"white"})
 
+statusBar = new L width: device.width, height: dp(24), backgroundColor: color.darkGlass
+statusBar.index = index.five
 
 
 fab = new Button
@@ -215,6 +228,7 @@ fab = new Button
   width: dp 56
   height: dp 56
   backgroundColor: color.red
+fab.index = index.five
 fab.borderRadius = '50%'
 fab.classList.add 'z-depth-3'
 
@@ -226,7 +240,7 @@ fabDoneIcon = new L
 fabDoneIcon.html = '<span class="fab icon icon-done"></span>'
 
 fab.states.animationOptions = aniOpt.spring
-fab.states.add 'defalut',
+fab.states.add 'bottom',
   x: device.width - fab.width - dp(16)
   y: device.height - fab.height - dp(16)
   scale: 1
@@ -236,7 +250,7 @@ fab.states.add 'hide',
   scale: 0
 
 fab.on Events.Click, (e, layer)->
-  if layer.states.state is 'defalut'
+  if layer.states.state is 'bottom'
     contacts.toggle()
     reminderPop.toggle()
     reminderPopClose.toggle()
@@ -256,6 +270,7 @@ fab.on Events.Click, (e, layer)->
 
 contacts = new ToggleLayer
   x:device.width, width: device.width, height: device.height, backgroundColor: color.glass
+contacts.index = index.three
 
 lnb = new L
   width: device.width, height: dp(80)
@@ -311,6 +326,7 @@ remindUser = new Layer width:dp(40), height:dp(40), scale:0
 remindUser.borderRadius = '50%'
 
 reminderPop = new ToggleLayer { x: device.width, y: dp(24), width: device.width-dp(72), height: device.height-dp(24), backgroundColor: color.glass }, { x: dp(72), opacity: 1 }
+reminderPop.index = index.four
 reminderPop.classList.add 'z-depth-3'
 reminderPop.on Events.Click, ->
 
@@ -369,17 +385,30 @@ reminderSettingOptions.forEach (option, index)->
     fab.index = 1000000000000
     fab.states.switch 'defalut'
 
-# user = new L
-#   x: dp(16), y: dp(16), width: dp(40), height: dp(40), backgroundColor: color.gray
-#   superLayer: contactItem
-# user.borderRadius = '50%'
-# user.html = '<span class="icon-person"></span>'
-# user.classList.add 'user-picture'
+addedContactlist = new L y:statusBar.height, width:device.width, height:device.height-statusBar.height, backgroundColor:'transparent'
+addedContactlist.index = index.two
+addedContactlistWrapper = new L width:device.width, height:device.height, backgroundColor:'transparent', superLayer: addedContactlist
+addedContactlistWrapper.scroll = true
 
-statusBar = new L
-  width: device.width, height: dp(24)
-  backgroundColor: color.darkGlass
-statusBar.index = index.top
+addedContacts = contactsData[0]
+
+class AddedContact extends Contact
+  constructor: (index, data)->
+    super index, data
+    setting = new Layer x:dp(300), y:dp(24), width:device.width-dp(300), backgroundColor:'transparent', superLayer:@
+    setting.html = 'Call, Every Day'
+
+contactlistItem = new AddedContact 0, addedContacts
+contactlistItem.superLayer = addedContactlistWrapper
+contactlistItem.on Events.Click, ->
+  console.log 1
 
 
 
+listView = new Scene()
+listView.add contacts, 'default'
+listView.add fab, 'bottom'
+listView.add reminderPop, 'default'
+
+
+listView.run true
