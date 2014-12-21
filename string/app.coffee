@@ -405,10 +405,10 @@ contactlistItem.on Events.Click, ->
 
 
 
-listView = new Scene()
-listView.add contacts, 'default'
-listView.add fab, 'bottom'
-listView.add reminderPop, 'default'
+# listView = new Scene()
+# listView.add contacts, 'default'
+# listView.add fab, 'bottom'
+# listView.add reminderPop, 'default'
 
 
-listView.run true
+# listView.run true

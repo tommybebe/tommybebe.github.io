@@ -1,83 +1,174 @@
-Framer.Device.deviceType = 'nexus-5-black'
+_ = Framer._
 
-# Variables
-screenWidth= 1080
-screenHeight= 1920
-fullScreen = x:0, y:0, width:screenWidth, height:screenHeight
-index =
-  execution: 100000
-  topBar: 10000
-  header: 1000
-  list: 100
-  info: 1
+# Define screen category and size, and dp
+md = new MobileDetect(window.navigator.userAgent)
 
-# colors
+device =
+  width: Framer.Device.screen.width
+  height: Framer.Device.screen.height
+
+dpFuncMaker = (dpx)->
+  (n)->
+    dpx * n
+
+# 전화기인 경우 풀 사이즈 출력, Framer.Device.screen 정보 조회 후 width/dp 결정
+# Framer.Device.screen.width 구해서 window.devicePixelRatio로 나눔.
+# dp계산시의 곱 계수는 window.devicePixelRatio가 됨.
+if md.phone()
+  dpx = window.devicePixelRatio
+# 타블렛인 경우 풀 사이즈 출력하지 않고, 절반 사이즈로 여백을 더함. 나머지 계산은 전화기와 동일
+# Framer.Device.screen.width 구해서 window.devicePixelRatio로 나눔. 여기서 절반만 씀.
+# dp계산시의 곱 계수는 window.devicePixelRatio/2가 됨.
+# 화면에 여백 절반 더함.
+else if md.tablet()
+  dpx = window.devicePixelRatio / 2
+  device.width = device.width / 2
+  device.height = device.height / 2
+# PC인 경우 넥서스5로 설정. 1080 x 1920,  width=360dp
+# dp 계수는 강제 3
+else
+  dpx = 2
+  Framer.Device.deviceType = "iphone-6-silver"
+  # Framer.Device.deviceType = "nexus-5-black"
+  device =
+    width: Framer.Device.screen.width
+    height: Framer.Device.screen.height
+
+dp = dpFuncMaker dpx
+
+# variables
 color = 
-  red: 'rgba(231, 76, 60, 1)'
-
-# animation options
+  white: '#fff'
+  red: 'rgba(231,76,60,1)'
+  green: '#4CAF50'
+  blue: 'rgba(52, 152, 219,1.0)'
+  gray: 'rgba(189, 189, 189, 1)'
+  glass: 'rgba(255,255,255,0.9)'
+  darkGlass: 'rgba(0,0,0,0.3)'
+index = 
+  five: 100000000
+  four: 1000000
+  three: 10000
+  two:  100
+  one:  1
 aniOpt =
   paper: 
     time: 0.3
     curve: 'ease-out'
-  slow:
-    time: 0.5
-    curve: 'ease-out'
   spring:
-    time: 40
+    time: 0.1
     curve: 'spring'
     curveOptions:
-      friction: 30
-      tension: 300
-      velocity: 20
+      tension: 400
+      friction: 20
+      velocity: 10
   ripple:
-    time: 0.2
-    curve: 'cubic-bezier(.05,.5,.5,.95)'
+    time: 0.5
+    curve: 'ease-out'
 
-spring = 
-  time: 0.9
-  curve: 'spring'
-  curveOptions:
-    friction: 20
-    tension: 200
-    velocity: 10
-lightSpring = 
-  time: 0.5
-  curve: 'spring'
-  curveOptions:
-    friction: 20
-    tension: 400
-    velocity: 20
+# Utils
+L = Layer
 
+class Button extends Layer
+  constructor: (options)->
+    defulatOptions = x:0, y:0, backgroundColor: 'rgba(0, 0, 255, 1)', width: 56*3, height: 56*3
+    options = _.assign defulatOptions, options
 
+    super(options)
+    options.index && @index = options.index
+
+    if options.shadowColor
+      @.states.add
+        pushed: { scale: 0.9, shadowY: 0, shadowBlur: 0, shadowSpread: 0 }
+        normal: { scale: 1, shadowY: options.shadowY, shadowBlur: options.shadowBlur, shadowSpread: options.shadowSpread }
+    else 
+      @.states.add
+        pushed: { scale: 0.9 }
+        normal: { scale: 1 }
+
+    @.states.animationOptions = aniOpt.spring
+
+    if options.backgroundColor is 'transparent'
+      rippleColor = 'rgba(0, 0, 0, 0.2)'
+    else 
+      rippleColor = 'rgba(255, 255, 255, 0.3)'
+    rippleSize = if options.width > options.height then options.width else options.height
+    # ripple event sequence.
+    # 1. 터치 시작과 함께 터치된 곳에서 0x0 크기 + 0% 투명도를 + parent의 1.5배 scale ripple 이 하나 생겨난다.
+    # 2. 터치 release 하기 전까지 애니메이션을 진행하며, 
+    # 3. 터치 좌표가 변경될 경우 좌료를 따라 움직인다.
+    # 4. 터치 release 되면 ripple을 커지기 전의 상태로 돌린다.
+    # 5. 단, 완전히 ripple이 커지기 전에 release 이벤트가 일어나면, 커지는 애니메이션을 기다린 후 뒤의 애니메이션을 진행한다.
+    ripple = new Layer width:rippleSize, height:rippleSize, backgroundColor: rippleColor
+    ripple.superLayer = @
+    ripple.borderRadius = '50%'
+    ripple.states.add 'focus', scale: 2, opacity: 1
+    ripple.states.add 'blur', scale: 2.4, opacity: 0
+    ripple.states.add 'off', scale: 0, opacity: 0
+    ripple.states.animationOptions = aniOpt.ripple
+    ripple.states.switchInstant 'off'
+
+    focusEnd = (e, layer)->
+      ripple.focusEnd = true
+    blurStart = (e, layer)=>
+      ripple.focusEnd = false
+      ripple.states.switch 'blur'
+
+    @on Events.TouchStart, (e, layer)->
+      # ios 에서는 이벤트 객체가 뭔가 다름.
+      if e.changedTouches and e.changedTouches[0]
+        x = e.changedTouches[0].clientX - @x
+        y = e.changedTouches[0].clientY - @y
+      else
+        x = e.offsetX
+        y = e.offsetY
+            
+      ripple.states.switchInstant 'off'
+      ripple.midX = x
+      ripple.midY = y
+      ripple.states.switch 'focus'
+      ripple.once Events.AnimationEnd, focusEnd
+
+      @.states.switch 'pushed'
+
+    @on Events.TouchEnd, (e, layer)=>
+      # 애니메이션 끝나고, 홀드된 상태
+      if ripple.focusEnd
+        ripple.states.switch 'blur'
+      # 애니메이션 끝내기 전에 손을 뗀 경우 기다린 다음 애니메이션 진행
+      else
+        ripple.once Events.AnimationEnd, blurStart
+      @.states.switch 'normal'
+      ripple.focusEnd = false
 
 id = ->
   '_' + Math.random().toString(36).substr(2, 9)
 
 class Scene
-  constructor: ()->
+  constructor: ->
     @stateName = id()
     @states = []
     @defaultAniOpt = aniOpt.paper
-      # time: 0.3
-      # curve: 'cubic-bezier(0,1,.35,.9)'
-      # curveOptions:
-      #   friction: 20
-      #   tension: 400
-      #   velocity: 20
   add: (layer, options, animation)->
-    layer.states.add @stateName, options
-    @states.push
-      layer: layer
-      animation: animation
+    if _.isString options
+      @states.push
+        layer: layer
+        animation: animation
+        stateName: options
+    else
+      layer.states.add @stateName, options
+      @states.push
+        layer: layer
+        animation: animation
   run: (instant)->
     @states.forEach (item)=>
       _animation = item.layer.states.animationOptions
       item.layer.states.animationOptions = item.animation || if _.isEmpty _animation then @defaultAniOpt else _animation
+      stateName = item.stateName || @stateName
       if instant
-        item.layer.states.switchInstant @stateName
+        item.layer.states.switchInstant stateName
       else
-        item.layer.states.switch @stateName
+        item.layer.states.switch stateName
       item.layer.states.animationOptions = _animation
     
     after = (cb)=>
@@ -87,428 +178,107 @@ class Scene
       @states[0].layer.on Events.AnimationStop, _cb
 
     return { after: after }
-    
-class Button extends Layer
-  constructor: (options)->
-    defulatOptions = x:0, y:0, backgroundColor: 'rgba(0, 0, 255, 1)', width: 56*3, height: 56*3
-    options = _.assign defulatOptions, options
 
-    super(options)
 
-    options.index && @index = options.index
-    
-    # ripple event sequence.
-    # 1. 터치 시작과 함께 터치된 곳에서 0x0 크기 + 0% 투명도를 + parent의 1.5배 scale ripple 이 하나 생겨난다.
-    # 2. 터치 release 하기 전까지 애니메이션을 진행하며, 
-    # 3. 터치 좌표가 변경될 경우 좌료를 따라 움직인다.
-    # 4. 터치 release 되면 ripple을 커지기 전의 상태로 돌린다.
-    # 5. 단, 완전히 ripple이 커지기 전에 release 이벤트가 일어나면, 커지는 애니메이션을 기다린 후 뒤의 애니메이션을 진행한다.
-    ripple = new Layer width:options.width, height:options.height, backgroundColor: 'rgba(255, 255, 255, 0.3)'
-    ripple.superLayer = @
-    ripple.borderRadius = '50%'
-    ripple.states.add 'focus', scale: 1.8, opacity: 1
-    ripple.states.add 'blur', scale: 2, opacity: 0
-    ripple.states.add 'off', scale: 0, opacity: 0
-    ripple.states.animationOptions = aniOpt.ripple
-    ripple.states.switchInstant 'off'
-
-    focusEnd = (e, layer)->
-      ripple.focusEnd = true
-    blurStart = (e, layer)->
-      ripple.focusEnd = false
-      ripple.states.switch 'blur'
-
-    @on Events.TouchStart, (e, layer)->
-      ripple.states.switchInstant 'off'
-      ripple.midX = e.offsetX
-      ripple.midY = e.offsetY
-      ripple.states.switch 'focus'
-      ripple.once Events.AnimationEnd, focusEnd
-
-    @on Events.TouchEnd, (e, layer)->
-      # 애니메이션 끝나고, 홀드된 상태
-      if ripple.focusEnd
-        ripple.states.switch 'blur'
-      # 애니메이션 끝내기 전에 손을 뗀 경우 기다린 다음 애니메이션 진행
+class ToggleLayer extends Layer
+  constructor: (options, open, close)->
+    super options
+    @states.animationOptions = aniOpt.paper
+    @states.add 'open', open || { x:0, opacity:1 }
+    @states.add 'close', close || { x:device.width, opacity:0 }
+    @toggle = ->
+      if @states.state is 'open'
+        @states.switch 'close'
       else
-        ripple.once Events.AnimationEnd, blurStart
-      ripple.focusEnd = false
+        @states.switch 'open'
 
 
-    @on Events.DragMove, (e, layer)->
-      ripple.midX = e.offsetX
-      ripple.midY = e.offsetY
+class Radio extends Layer
+  constructor: (options, check)->
+    @checkColor = color.green
+    @uncheckColor = '#5a5a5a'
+    options = x: options.x, y: options.y, width: dp(20), height: dp(20), backgroundColor: @uncheckColor, superLayer:options.superLayer
+    super options
+    @borderRadius = '50%'
+    @force2d = true
+    @clip = false
+
+    inner = new Layer midX:@width/2, midY:@height/2, width:@width-dp(4), height:@height-dp(4), backgroundColor:color.white, superLayer:@
+    inner.borderRadius = '50%'
+
+    @checked = new Layer midX:@width/2, midY:@height/2, width:@width-dp(10), height:@height-dp(10), backgroundColor:@checkColor, superLayer:@
+    @checked.borderRadius = '50%'
+    @checked.scale = 0
+    @checked.states.add 'true', scale: 1
+    @checked.states.add 'false', scale: 0
+    @checked.states.animationOptions = aniOpt.spring
+      # curve: 'spring(1000, 10, 10)'
+
+    ripple = new Button midX:@width/2, midY:@height/2, width:@width*2.2, height:@height*2.2, backgroundColor:'transparent', superLayer:@
+    ripple.borderRadius = '50%'
+
+    if check
+      @checked.states.switchInstant 'true'
+    else
+      @checked.states.switchInstant 'false'
+
+    @on Events.Click, ->
+      @toggle()
+
+  toggle: Utils.debounce 0.1, ->
+    if @checked.states.state is 'true'
+      @backgroundColor = @uncheckColor
+      @checked.states.switch 'false'
+    else
+      @backgroundColor = @checkColor
+      @checked.states.switch 'true'
 
 
-bg = new BackgroundLayer
-  x:0
-  y:0
-  width: screenWidth
-  height: screenHeight
-  backgroundColor: '#555'
+bg = new BackgroundLayer({backgroundColor:"white"})
 
-topBar = new Layer
-  x: 0
-  y: 0
-  width: screenWidth
-  height: 71
-  image:'images/top-bar.png'
-topBar.index = index.topBar
-
-header = new Layer
-  x: 0
-  y: 0
-  width: screenWidth
-  height: 247+15
-header.style['background'] = '-webkit-linear-gradient(right, rgba(168, 132, 146, 0.97) 0%, rgba(68, 132, 246, 0.97) 100%)'
-header.index = index.header
-header.shadowX = 0
-header.shadowBlur = 24
-header.shadowSpread = 12
-header.shadowColor = "rgba(0,0,0,0.2)"
-
-hamburger = new Button
-  x: 48
-  y: 48 + 71
-  width: 36*3
-  height: 36*3
-  backgroundColor: 'rgba(255, 255, 255, 0)'
-  superLayer: header
-hamburger.borderRadius = '50%'
-hamburger.on Events.Click, (e, layer)->
-
-
-hamburgerIcon = new Layer
-  width: 70
-  height: 70
-  midX: hamburger.width/2
-  midY: hamburger.height/2
-  image: 'images/ic_menu_white_48dp.png'
-  superLayer: hamburger
-
-menu = new Layer
-  x: -screenWidth, y: 247
-  width: screenWidth - (56*3)
-  height: screenHeight + header.y + header.height
-  backgroundColor: 'rgba(255, 255, 255, 1)'
-
-menuShadow = new Layer
-  y: 247, width: screenWidth, height: screenHeight, opacity:0
-  backgroundColor: 'rgba(0,0,0,0.7)'
-
-menu.index = 0
-menuShadow.index = 0
-
-menuOpen = new Scene()
-menuOpen.add menu, x:0
-menuOpen.add menuShadow, opacity:1
-menuClose = new Scene()
-menuClose.add menu, x:-screenWidth
-menuClose.add menuShadow, opacity:0
-
-# toggle side menu
-hamburger.on Events.Click, (e, layer)->
-  if !hamburger.status
-    hamburger.status = true
-    menuOpen.run()
-    menu.index = index.execution + 2
-    menuShadow.index = index.execution + 1
-  else 
-    hamburger.status = false
-    menuClose.run().after ->
-      menu.index = 0
-      menuShadow.index = 0
-# shadow can close menu too
-menuShadow.on Events.Click, (e, layer)->
-  hamburger.status = false
-  menuClose.run().after ->
-      menu.index = index.execution + 2
-      menuShadow.index = index.execution + 1
-
-pageTitle = new Layer
-  x: 72 * 3
-  y: 48 + 71 + 15
-  width: 170
-  height: 70
-  superLayer: header
-  backgroundColor: 'rgba(68, 132, 246, 0)'
-pageTitle.html = 'Title'
-pageTitle.style["font-size"] = "2em"
-pageTitle.style["line-height"] = "1.2em"
-
-info = new Layer
-  x: 0
-  y: 0
-  width: screenWidth
-  height: screenHeight
-  backgroundColor: 'rgba(255, 255, 255, 1)'
-info.index = index.info
-
-indicator = new Layer
-  x:-40, y:-20, width: 0, height: screenHeight+20, superLayer: info
-indicator.skew = 3
-
-infoText = new Layer
-  x:0, y:400, width:screenWidth, height:screenHeight
-  superLayer: info, backgroundColor: 'transparent'
-infoText.html = '<h1 class="info-text">00%</h1>'
-
-list = new Layer
-  width: screenWidth
-  height: 1920
-  backgroundColor: 'rgba(255, 255, 255, 1)'
-list.index = index.list
-list.shadowY = 0
-list.shadowBlur = 12
-list.shadowSpread = 0
-list.shadowColor = "rgba(0,0,0,0.2)"
-list.draggable.enabled = true
-list.draggable.speedX = 0
-list.draggable.speedY = 0.5
-
-listInner = new Layer
-  width: screenWidth
-  height: list.height
-  backgroundColor: 'rgba(255, 255, 255, 1)'
-  superLayer: list
-listInner.index = list.index + 1
-listInner.draggable.enabled = false
-listInner.draggable.speedX = 0
-listInner.states.add 'defalut', y:0, 
-listInner.states.animationOptions = aniOpt.spring
-
-class ListItem extends Layer
-  constructor: (index, type)->
-
-    app = ['instagram', 'Foto', 'Telegram', 'Messanger', 'Facebook', 'Monotor', 'Battery Manager', 'Tumblr']
-
-    super
-      x: 0, y: 8*3 + (index*72*3), width: screenWidth, height: 72*3, backgroundColor: 'rgba(255, 255, 255, 1)'
-
-    icon = new Layer
-      x: 16*3, y: 16*3, width: 36*3, height: 36*3
-      image:'images/app'+index+'.png'
-      superLayer: @
-
-    title = new Layer
-      x: 72*3
-      y: 48
-      width: 272 * 3
-      height: 144
-      backgroundColor: 'rgba(255, 255, 255, 0)'
-      superLayer: @
-    title.html = '<h3 class="list-item-title">'+app[i]+'</h3>'
-
-    subtitle = new Layer
-      x: 72*3
-      y: 16*3 + 20*3
-      width: 272 * 3
-      height: 144
-      backgroundColor: 'rgba(255, 255, 255, 0)'
-      superLayer: @
-    subtitle.html = '<h4 class="list-item-subtitle">Secondary line : have some spaces</h4>'
-
-    action = new Layer
-      x: (360-16)*3
-      y: 16*3 + 20*3
-      width: 272 * 3
-      height: 144
-      backgroundColor: 'rgba(255, 255, 255, 0)'
-      superLayer: @
-    action.html = '<input type="checkbox"/>'
-
-
-listItems = []
-for i in [0..7]
-  item = new ListItem(i)
-  item.superLayer = listInner
-  listItems.push item
-
-# states - long or short
-list.states.add 'short', y: 1200
-list.states.add 'long', y: 500
-list.states.animationOptions = aniOpt.spring
-list.on Events.DragStart, (e, layer) ->
-  button.y = layer.y - button.height/2
-list.on Events.DragMove, (e, layer) ->
-  button.y = layer.y - button.height/2
-
-setListInnerPosition = (e, layer)->
-  if layer.y > 0
-    layer.states.switch 'defalut'
-  if layer.y > 400
-    console.log(1)
-    list.states.switch 'short'
-    
-    list.animate
-      properties:
-        y:1000
-    button.states.switch 'short'
-    list.draggable.enabled = true
-    listInner.draggable.enabled = false
-    list.on Events.DragEnd, setListPosition
-    listInner.off Events.DragEnd, setListInnerPosition
-
-setListInnerPositionToLong = (e, layer)->
-    if layer.y > 400
-      layer.y = 0
-      list.states.switch 'short'
-      list.on Events.DragEnd, setListPosition
-      button.states.switch 'short'
-      list.draggable.enabled = true
-      listInner.draggable.enabled = false
-
-setListPosition = (e, layer) ->
-  # long 
-  if list.y < 1000
-    list.states.switch 'long'
-    list.draggable.enabled = false
-    listInner.draggable.enabled = true
-    # listInner.scrollVertical = true
-    button.states.switch 'long'
-    layer.off Events.DragEnd, setListPosition
-    # listInner.on Events.DragEnd, setListInnerPosition
-    listInner.on Events.DragMove, setListInnerPositionToLong
-  else 
-    list.states.switch 'short'
-    button.states.switch 'short'
-
-list.on Events.DragEnd, setListPosition
-
-
-
-execution = new Layer
-  x: 0
-  y: 0
-  width: screenWidth
-  height: screenHeight
-  backgroundColor: 'rgba(255, 5, 255, 0)'
-execution.index = index.execution
-
-button = new Button
-  x: screenWidth - (56 * 3) - 48
-  y: 1200 - (56*3/2)
-  width: 56 * 3
-  height: 56 * 3
-  backgroundColor: 'rgba(231, 76, 60, 1)'
-  superLayer: execution
-button.borderRadius = '50%'
-button.shadowY = 2*3
-button.shadowBlur = 6*3
-button.shadowSpread = 2*3
-button.shadowColor = "rgba(0,0,0,0.23)"
-button.states.add 'short', y: 1200 - (56*3/2)
-button.states.add 'long', y: 500 - (56*3/2)
-button.states.animationOptions = 
-  time: 0.2
-  curve: 'spring'
-  curveOptions:
-    friction: 20
-    tension: 400
-    velocity: 20
-
-progress = new Layer
-  width:0, height:0
+fab = new Button
+  midX: device.width/3, midY: device.height/2
+  width: dp 56
+  height: dp 56
   backgroundColor: color.red
-  superLayer: execution
-progress.borderRadius = '50%'
+  shadowY: 12
+  shadowBlur: 10
+  shadowSpread: 4
+  shadowColor: 'rgba(0,0,0,0.2)'
 
-# softKey = new Layer
-#   x: 0
-#   y: screenHeight - 145
-#   width: screenWidth
-#   height: 146
-#   image: 'images/soft-key.png'
-# info.index = index.info
+fab.index = index.five
+fab.borderRadius = '50%'
 
-home = new Layer
-  image: 'images/home.jpg'
-home.index = 1
-splashScreen = new Layer
-  image: 'images/splash-screen.png'
-splashScreen.index = 1
+fabAddIcon = new L
+  midX: fab.width/2, midY: fab.height/2, width: dp(40), height: dp(40), backgroundColor: 'transparent', superLayer:fab
+fabAddIcon.html = '<span class="fab icon icon-add"></span>'
+fabDoneIcon = new L
+  midX: fab.width/2, midY: fab.height/2, width: dp(40), height: dp(40), backgroundColor: 'transparent', opacity:0, superLayer:fab
+fabDoneIcon.html = '<span class="fab icon icon-done"></span>'
 
-blank = new Scene()
-blank.add topBar, opacity:0
-blank.add header, x:0, y:-header.height-50
-blank.add list, x:0, y:screenHeight
-blank.add button, scale:0
-blank.run true
+fab.states.animationOptions = aniOpt.spring
 
-beforeStart = new Scene()
-beforeStart.add home, fullScreen
-beforeStart.add splashScreen, x:800, y:1200, opacity:0
-beforeStart.run true
+backSide = new Layer
+  midX: device.width/3*2+dp(2)
+  y: 0
+  width: dp 3
+  height: device.height
+  backgroundColor: color.gray
 
-startApp = new Scene()
-startApp.add splashScreen, _.assign(fullScreen, {opacity:1})
-startApp.add topBar, opacity:1
-startApp.add home, opacity:0
+fabSide = new Layer
+  x: device.width/3*2-dp(10)
+  midY: device.height/2
+  width: dp 3
+  height: dp 56
+  backgroundColor: color.red
+  clip: false
 
-load = new Scene()
-load.add indicator, { width: screenWidth*0.65 }
-load.add splashScreen, { opacity:0 }, aniOpt.slow
+fabSide.states.add
+  pushed: x: device.width/3*2-dp(3)
+fabSide.states.animationOptions = aniOpt.spring
 
-loadComplete = new Scene()
-loadComplete.add header, x:0, y:-15
-loadComplete.add list, x:0, y:1200
-loadComplete.add button, { scale:1 }, spring
+fab.on Events.TouchStart, ->
+  fabSide.states.switch 'pushed'
 
-# home.on Events.Click, (e, layer)->
-startApp.run().after ->
-  load.run().after ->
-    loadComplete.run().after ->
-
-button.on Events.Click, (e, layer)->
-  progress.width = 1000
-  progress.height = 1000
-  progress.scale = 0.1
-  progress.midX = button.midX
-  progress.midY = button.midY
-  animation = progress.animate
-    properties:
-      scale: 5
-    time: 1
-    curve: aniOpt.ripple.curve
-
-# # 
-# listOriginX = list.x
-# listOriginY = list.y
-
-# list.states.add 'short', y: 1200
-# list.states.add 'long', y: 500
-# list.states.animationOptions = 
-#   time: 0.2
-#   curve: 'spring'
-#   curveOptions:
-#     friction: 20
-#     tension: 400
-#     velocity: 20
-
-# list.on Events.DragMove, (event, layer) ->
-#   button.y = layer.y - button.height/2
-# list.on Events.DragEnd, (e, layer) ->
-#   # long 
-#   console.log(e.offsetY)
-#   if list.y < 1000
-#     list.states.switch 'long'
-#     list.draggable.enabled = false
-#     button.states.switch 'long'
-  # animation = layer.animate
-  #   properties:
-  #     x: listOriginX
-  #     y: listOriginY
-  #   curve: "spring"
-  #   curveOptions:
-  #     friction: 20
-  #     tension: 400
-  #     velocity: 20
-  # animation2 = button.animate
-  #   properties:
-  #     y: listOriginY - button.height/2
-  #   curve: "spring"
-  #   curveOptions:
-  #     friction: 20
-  #     tension: 400
-  #     velocity: 20
-
+fab.on Events.TouchEnd, ->
+  fabSide.states.switch 'default'
