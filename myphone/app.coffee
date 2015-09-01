@@ -59,7 +59,7 @@ toolBar = new L
   y: 24
   width: WIDTH
   height: 56
-  image: './images/toolbar.png'
+  image: './images/toolBar.png'
   index: 1000
 
 backButton = new L
