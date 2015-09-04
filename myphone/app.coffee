@@ -322,7 +322,7 @@ processRun = ()->
     if num < 10 then num = '0' + num
     number.html = num + ' <span style="font-size:0.4em">%<span>'
   , 50
-
+window.eee = executeButton;
 executeButton.on Events.Click, ->
   listLabel.opacity = 0
   processRun()
@@ -519,34 +519,44 @@ listDragEndFunc = (e, obj)->
 
 list.on Events.DragEnd, listDragEndFunc
 
-# fakeCursor = new L
-#   width: 64
-#   height: 64
-#   borderRadius: 100
-#   backgroundColor: 'rgba(0,0,0,0.3)'
-#   shadowY: 4
-#   shadowBlur: 10
-#   shadowColor: "rgba(0,0,0,0.4)"
+fakeCursor = new L
+  width: 64
+  height: 64
+  borderRadius: 100
+  backgroundColor: 'rgba(255,255,255,0.3)'
+  shadowY: 4
+  shadowBlur: 10
+  shadowColor: "rgba(0,0,0,0.4)"
 
-# fakeCursor.center()
-# fakeCursor.y += dp 200
+fakeCursor.center()
+fakeCursor.y += dp 200
 
-# Utils.delay 0.5, ->
-#   fakeCursor.animate
-#     properties:
-#       y: dp 200
-#     curve: 'spring(150,30,0)'
+fakeCursor.states.add
+  in: 
+    scale: 1
+    opacity: 1
+  out: 
+    scale: 2
+    opacity: 0
+  tab:
+    scale: 0.8
 
-#   list.animate
-#     properties:
-#       y: dp 300
-#     curve: 'spring(150,30,0)'
+Utils.delay 0.5, ->
+  fakeCursor.animate
+    properties:
+      y: dp 200
+    curve: 'spring(150,30,0)'
 
-# Utils.delay 1, ->
-#   fakeCursor.opacity = 0;
-#   [tabMenu, number, activeIcon, status, list, executeButton, contentText].forEach (obj)->
-#     obj.states.switch 'up'
+  list.animate
+    properties:
+      y: dp 240
+    curve: 'spring(150,30,0)'
 
+  listDragMoveFunc null, { layer: { y: 550 } }
+
+Utils.delay 1, ->
+  fakeCursor.states.switch 'out'
+  scene 'up'
 
 # menuChange = (seq)->
 #   [list, number, contentText, executeButton].forEach (obj)->
