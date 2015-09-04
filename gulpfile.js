@@ -16,6 +16,19 @@ gulp.task('default', [], function(){
   gulp.watch(['./framer/app.coffee', './framer/index.html', './framer/styles/main.css'], reload);
 });
 
+gulp.task('mp', [], function(){
+  browserSync({
+    notify: true,
+    open: false,
+    port: 9000,
+    server: {
+      baseDir: './myphone'
+    }
+  });
+
+  gulp.watch(['./myphone/app.coffee', './myphone/index.html', './myphone/styles/main.css'], reload);
+});
+
 gulp.task('string', [], function(){
   browserSync({
     notify: true,

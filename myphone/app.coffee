@@ -1,14 +1,16 @@
 color = 
-  background: '#e3e3e3'
+  background: '#0d1623'
   statusBar: '#0e4a93'
   toolBar: '#2864AD'
   status: '#5e97c2'
-  list: '#f8f8f8'
-  listLabel: '#b3bec4'
-  listBorder: '#c9c9c9'
-  checkbox: '#0e76b3'
-  executeButton: '#1f95f0'
-  contentText: '#888'
+  list: 'rgb(25, 34, 48)'
+  listLabel: 'rgb(72, 81, 93)'
+  listBorder: 'rgb(65, 79, 102)'
+  checkbox: 'rgba(93,151,194,1)'
+  executeButton: 'rgba(93,151,194,1)'
+  executeButtonBorder: '0'
+  number: '#fff'
+  contentText: 'rgb(148, 159, 172)'
 
 Framer.Defaults.Animation = {
   curve: "spring(600,30,5)"
@@ -47,19 +49,13 @@ statusBar = new L
   height: 24
   backgroundColor: color.statusBar
   index: 10000000
-
-statusIcons = new L
-  x: WIDTH/2
-  y: 2
-  width: WIDTH/2-4
-  height: 18
-  image: './images/status.png'
+  image: './images/statusBar.png'
 
 toolBar = new L
   y: 24
   width: WIDTH
   height: 56
-  image: './images/toolBar.png'
+  image: './images/actionBar.png'
   index: 1000
 
 backButton = new L
@@ -130,44 +126,72 @@ backButton = new L
 #   index: 1000
 #   opacity: 0
 
-status = new L
-  y: 86
-  width: WIDTH
-  height: HEIGHT - 116
-  backgroundColor: 'transperant'
-  index: 100
-  opacity: 0
+# status = new L
+#   y: 86
+#   width: WIDTH
+#   height: HEIGHT - 116
+#   backgroundColor: 'transperant'
+#   index: 100
+#   opacity: 0
 
-wave = new L
-  y: 70
+# wave = new L
+#   y: 70
+#   width: WIDTH
+#   height: 500
+#   image: './images/wave2.png'
+#   superLayer: status
+
+heart = new L
   width: WIDTH
-  height: 500
-  image: './images/wave2.png'
-  superLayer: status
+  height: WIDTH
+  backgroundColor: 'transperant'
+  image: './images/backgroundGradiant.png'
+  index: 100
+heart.centerX()
+
+ani = (scale)->
+  heart.animate
+    properties:
+      scale: scale
+    curve: 'ease'
+    time: 1
+t = 1
+big = false
+
+setInterval ->
+  Utils.delay 1, ->
+    if big 
+      ani(1.2)
+    else
+      ani(0.5)
+    t++
+    big = !big
+, 1000
 
 contentText = new L
-  x: 100
+  x: (WIDTH-200)/2
   y: 266
-  width: 160
+  width: 200
   height: 15
   backgroundColor: 'transperant'
   html: '1.23GB 메모리 확보 가능'
-  style: 
+  style:
+    'font-size': '1.2em'
     color: color.contentText
 
 number = new L
-  x: 90
+  x: (WIDTH-220)/2
   y: 150
-  width: 190
+  width: 200
   height: 100
-  html: '75 <span style="font-size:0.4em">%<span>'
+  html: '75<span style="font-size:0.6em"> %<span>'
   backgroundColor: 'transperant'
   style:
     'font-size': '9em'
     'letter-spacing': '-0.1em'
     'line-height': '0.8em'
     'text-align': 'center'
-    'color': color.executeButton
+    'color': color.number
 
 # number2 = new L
 #   x: 90
@@ -193,35 +217,46 @@ executeButton = new L
   backgroundColor: color.executeButton
   html: '정리하기'
 executeButton.style =
-  # 'border': dp(1)+'px solid #fff'
+  'border': dp(1)+'px solid ' + color.executeButtonBorder
   'text-align': 'center'
   'font-size': '1em'
   'line-height': '2.8em'
 
 list = new L
   x: 0
-  y: 0
+  y: 398
   width: WIDTH
   height: Screen.height
   backgroundColor: 'transperant'
   index: 900
 
 listLabel = new L
-  x: 0
-  y: 416
   width: WIDTH
-  height: 40
+  height: 45
   backgroundColor: color.listLabel
-  image: './images/listLabel.png'
   superLayer: list
+  html: '종료할 실행 중인 앱'
   index: 901
+  style: 
+    'padding': '1em'
+    'line-height': '1.2em'
+
+listCounter = new L
+  x: WIDTH - 60
+  y: -16
+  width: 30
+  html: '9개'
+  superLayer: listLabel
+  backgroundColor: 'transperant'
+  style:
+    'text-align': 'right'
 
 listWrapper = new L 
   x: 0
-  y: 0
+  y: 45
   width: WIDTH
   height: Screen.height
-  backgroundColor: 'transperant'
+  backgroundColor: color.background
   superLayer: list
   index: 910
 
@@ -230,47 +265,55 @@ list.draggable.horizontal = false
 list.draggable.speedY = 0.5
 list.draggable.constraints =
   x: 0
-  y: -HEIGHT+170
+  y: 180*2
   width: WIDTH
   height: list.height+10000
 list.draggable.overdrag = false
 
 class ListItem extends L
-  constructor: (seq, img)->
+  constructor: (seq)->
     super _.assign {}, 
-      y: 456 + seq * 64
+      y: seq * 68
       width: WIDTH
-      height: 64
-      backgroundColor: '#fff'
+      height: 68
+      backgroundColor: color.list
       opacity: 1
       superLayer: listWrapper
     @states.add
       'hide':
         opacity: 0
-    content = new L
-      x: 16
-      y: 12
-      width: WIDTH-100
-      height: 40
-      image: img
-      superLayer: @
     checkbox = new L
       x: WIDTH-16-22
       y: 22
       width: 20
       height: 20
       backgroundColor:  color.checkbox
-      borderRadius: 4
+      borderRadius: 2
+      superLayer: @
+    checkIcon = new L
+      x: 1
+      y: 1
+      width: 18
+      height: 18
+      image: './images/checkIcon.svg'
+      backgroundColor: 'transperant'
+      superLayer: checkbox
+    content = new L
+      x: 14
+      y: 12
+      height: 44
+      width: 100
+      image: './images/listItem'+seq%3+'.png'
       superLayer: @
     border = new L
-      y: 63
+      y: 67
       width: WIDTH
       height: 1
       backgroundColor: color.listBorder
       superLayer: @
 
 items = []
-items.push new ListItem i, './images/list'+i+'.png' for i in [0..8]
+items.push new ListItem i for i in [0..8]
 
 interval = null
 processRun = ()->
@@ -287,11 +330,11 @@ executeButton.on Events.Click, ->
   scene 'execute'
   items.forEach (item, i)->
     {x, y, rotation} = item
-    Utils.delay i*0.4, ->
+    Utils.delay i*0.1, ->
       item.animate
         properties:
           opacity: 0
-    Utils.delay i*0.08, ->
+    Utils.delay i*0.03, ->
       item.animate
         properties:
           x: dp WIDTH-item.width
@@ -299,15 +342,16 @@ executeButton.on Events.Click, ->
           # rotation: -30
         # curve: "cubic-bezier(1,-0.29,.85,.5)"
         # time: 0.4
-        curve: 'cubic-bezier(.14,.19,.57,.93)'
+        curve: 'cubic-bezier(0,.8,1,1)'
         time: 0.4
     Utils.delay 2, ->
       item.x = x
       item.y = y
       item.rotation = rotation
-      item.opacity= 1
+      item.opacity = 1
       listLabel.opacity = 1
-      scene 'down'
+      scene 'up'
+
   Utils.delay 1, ->
     number.html = '00 <span style="font-size:0.4em">%<span>'
     clearInterval interval
@@ -318,9 +362,9 @@ capture =
   # tabMenu: 
   #   x: tabMenu.x
   #   y: tabMenu.y
-  status: 
-    x: status.x
-    y: status.y
+  # status: 
+  #   x: status.x
+  #   y: status.y
   # activeIcon: 
   #   x: activeIcon.x
   #   y: activeIcon.y
@@ -336,6 +380,9 @@ capture =
   executeButton: 
     x: executeButton.x
     y: executeButton.y
+  heart:
+    x: heart.x
+    y: heart.y
 
 # tabMenu.states.add
 #   'up':
@@ -343,11 +390,11 @@ capture =
 #   'down': 
 #     y: capture.tabMenu.y
 
-status.states.add
-  'up':
-    y: dp -100
-  'down': 
-    y: capture.status.y
+# status.states.add
+#   'up':
+#     y: dp -100
+#   'down': 
+#     y: capture.status.y
 
 # activeIcon.states.add
 #   'up':
@@ -387,6 +434,13 @@ number.states.add
     y: capture.number.y
     scale: 1
 
+heart.states.add
+  'up':
+    x: dp -100
+    y: dp -100
+  'down': 
+    x: capture.heart.x
+    y: capture.heart.y
 # number2.states.add
 #   'up':
 #     x: dp 10
@@ -399,7 +453,7 @@ number.states.add
 
 list.states.add
   'up':
-    y: dp -236
+    y: dp 180
   'down': 
     y: capture.list.y
 
@@ -423,7 +477,7 @@ executeButton.states.add
 list.on Events.DragStart, ()->
   list.dragStartY = list.y
 listDragMoveFunc = (e, obj)->
-  listMoving = [capture.list.y,-236*2]
+  listMoving = [capture.list.y,180*2]
   if capture.list.y > obj.layer.y # up
     executeButton.animate
       properties:
@@ -432,9 +486,9 @@ listDragMoveFunc = (e, obj)->
         width: Utils.modulate(obj.layer.y, listMoving, [dp(120), dp(100)], true)
         scale: Utils.modulate(obj.layer.y, listMoving, [1, 0.9], true)
       curve: "spring(900,80,0)"
-    status.animate
+    heart.animate
       properties:
-        y: Utils.modulate(obj.layer.y, listMoving, [capture.status.y,dp(-100)], true)
+        y: Utils.modulate(obj.layer.y, listMoving, [capture.heart.y,dp(20)], true)
         curve: "spring(900,80,0)"
     contentText.animate
       properties:
