@@ -26,7 +26,7 @@ gulp.task('mp', [], function(){
     }
   });
 
-  gulp.watch(['./myphone/app.coffee', './myphone/index.html', './myphone/styles/main.css'], reload);
+  gulp.watch(['./myphone/*.coffee', './myphone/index.html', './myphone/styles/main.css'], reload);
 });
 
 gulp.task('string', [], function(){
