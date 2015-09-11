@@ -466,41 +466,45 @@ listDragEndFunc = (e, obj)->
 list.on Events.DragMove, listDragMoveFunc
 list.on Events.DragEnd, listDragEndFunc
 
-# fakeCursor = new L
-#   width: dp 64
-#   height: dp 64
-#   borderRadius: dp 100
-#   backgroundColor: 'rgba(255,255,255,0.3)'
-#   shadowY: 4
-#   shadowBlur: 10
-#   shadowColor: "rgba(0,0,0,0.4)"
+fakeCursor = new L
+  width: dp 64
+  height: dp 64
+  borderRadius: dp 100
+  backgroundColor: 'rgba(255,255,255,0.3)'
+  shadowY: 4
+  shadowBlur: 10
+  shadowColor: "rgba(0,0,0,0.4)"
 
-# fakeCursor.center()
-# fakeCursor.y += dp 200
+fakeCursor.center()
+fakeCursor.y += dp 200
 
-# fakeCursor.states.add
-#   in: 
-#     scale: 1
-#     opacity: 1
-#   out: 
-#     scale: 2
-#     opacity: 0
-#   tab:
-#     scale: 0.8
+fakeCursor.states.add
+  in: 
+    scale: 1
+    opacity: 1
+  out: 
+    scale: 2
+    opacity: 0
+  tab:
+    scale: 0.8
 
-# Utils.delay 0.5, ->
-#   fakeCursor.animate
-#     properties:
-#       y: dp 200
-#     curve: 'spring(150,30,0)'
+Utils.delay 0.5, ->
+  fakeCursor.animate
+    properties:
+      y: dp 200
+    curve: 'spring(150,30,0)'
 
-#   list.animate
-#     properties:
-#       y: dp 240
-#     curve: 'spring(150,30,0)'
+  list.animate
+    properties:
+      y: dp 240
+    curve: 'spring(150,30,0)'
 
-#   listDragMoveFunc null, { layer: { y: 550 } }
+  listDragMoveFunc null, { layer: { y: 550 } }
 
-# Utils.delay 1, ->
-#   fakeCursor.states.switch 'out'
-#   scene 'up'
+Utils.delay 1, ->
+  fakeCursor.states.switch 'out'
+  scene 'up'
+
+Utils.delay 2, ->
+  list.states.switch 'out'
+  scene 'up'
