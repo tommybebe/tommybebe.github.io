@@ -23,7 +23,7 @@ dp = (num)->
   return num * (if mobile then 2 else 3)
 
 sp = (num)->
-  return (num / (if mobile then 15 else 10)) + 'em'
+  return (num * (if mobile then 2 else 3)) + 'px'
 
 
 WIDTH = Framer.Screen.width
@@ -53,6 +53,15 @@ head = new L
   index: 10000000
   image: './images/head.png'
 
+backButton = new L
+  x: dp 12
+  y: dp 36
+  width: dp 32
+  height: dp 32
+  backgroundColor: '#000'
+  image: './images/back.svg'
+  superLayer: head
+
 heart = new L
   width: WIDTH
   height: WIDTH
@@ -81,44 +90,31 @@ setInterval ->
 , 1000
 
 contentText = new L
-  x: dp (WIDTH-200)/2
   y: dp 266
-  width: dp 200
+  width: dp 180
   height: dp 15
   backgroundColor: 'transperant'
   html: '1.23GB 메모리 확보 가능'
   style:
-    'font-size': '1.2em'
+    'font-size': sp 16
+    'line-height': '1.1em'
+    'text-align': 'center'
     color: color.contentText
+contentText.centerX()
 
 number = new L
-  x: dp (WIDTH-220)/2
   y: dp 150
-  width: dp 200
+  width: dp 180
   height: dp 100
-  html: '75<span style="font-size:0.6em"> %<span>'
+  html: '75<span style="font-size:0.68em"> %<span>'
   backgroundColor: 'transperant'
   style:
-    'font-size': '9em'
+    'font-size': sp 110
     'letter-spacing': '-0.1em'
     'line-height': '0.8em'
     'text-align': 'center'
     'color': color.number
-
-# number2 = new L
-#   x: 90
-#   y: 180
-#   width: 190
-#   height: 100
-#   backgroundColor: 'transperant'
-#   html: '75 <span style="font-size:0.4em">%<span>'
-#   index: 99
-#   style:
-#     'font-size': '9em'
-#     'letter-spacing': '-0.1em'
-#     'line-height': '0.8em'
-#     'color': color.status
-#     'text-align': 'center'
+number.centerX()
 
 executeButton = new L
   x: dp 120
@@ -131,8 +127,9 @@ executeButton = new L
 executeButton.style =
   'border': dp(1)+'px solid ' + color.executeButtonBorder
   'text-align': 'center'
-  'font-size': '1em'
+  'font-size': sp 14
   'line-height': '2.8em'
+executeButton.centerX()
 
 list = new L
   x: dp 0
@@ -148,9 +145,10 @@ listLabel = new L
   backgroundColor: color.listLabel
   superLayer: list
   html: '종료할 실행 중인 앱'
-  index: 901
+  index: 950
   style: 
     'padding': '1em'
+    'font-size': sp 14
     'line-height': '1.2em'
 
 listCounter = new L
@@ -163,16 +161,20 @@ listCounter = new L
   style:
     'text-align': 'right'
 
-listWrapper = new L 
+listWrapper = new ScrollComponent
   x: 0
   y: dp 45
   width: WIDTH
-  height: Screen.height
+  height: HEIGHT - dp(225)
   backgroundColor: color.background
   superLayer: list
   index: 910
+listWrapper.scrollHorizontal = false
+listWrapper.scrollVertical = false
+
 
 list.draggable.enabled = true
+# list.draggable.enabled = false
 list.draggable.horizontal = false
 list.draggable.speedY = 0.5
 list.draggable.constraints =
@@ -190,15 +192,15 @@ class ListItem extends L
       height: dp 68
       backgroundColor: color.list
       opacity: 1
-      superLayer: listWrapper
+      superLayer: listWrapper.content
     @states.add
       'hide':
         opacity: 0
     checkbox = new L
-      x: WIDTH - dp(16-22)
+      x: WIDTH - dp(16+22)
       y: dp 22
       width: dp 20
-      height: dp dp 20
+      height: dp 20
       backgroundColor:  color.checkbox
       borderRadius: 2
       superLayer: @
@@ -242,27 +244,28 @@ executeButton.on Events.Click, ->
   scene 'execute'
   items.forEach (item, i)->
     {x, y, rotation} = item
-    Utils.delay i*0.1, ->
+    Utils.delay i*0.2, ->
       item.animate
         properties:
           opacity: 0
     Utils.delay i*0.03, ->
       item.animate
         properties:
-          x: dp WIDTH-item.width
+          x: - item.width
+          scale: 0.8
           # y: item.y-600
           # rotation: -30
         # curve: "cubic-bezier(1,-0.29,.85,.5)"
         # time: 0.4
         curve: 'cubic-bezier(0,.8,1,1)'
-        time: 0.4
+        time: 0.6
     Utils.delay 2, ->
-      item.x = x
-      item.y = y
+      item.x = 0
       item.rotation = rotation
       item.opacity = 1
+      item.scale = 1
       listLabel.opacity = 1
-      scene 'up'
+      scene 'down'
 
   Utils.delay 1, ->
     number.html = '00 <span style="font-size:0.4em">%<span>'
@@ -324,7 +327,7 @@ capture =
 
 contentText.states.add
   'up':
-    x: dp 10
+    x: dp 6
     y: dp 150
     scale: 0.85
     opacity: 1
@@ -338,7 +341,7 @@ contentText.states.add
 
 number.states.add
   'up':
-    x: dp -42
+    x: dp -36
     y: dp 68
     scale: 0.38
   'down': 
@@ -353,15 +356,6 @@ heart.states.add
   'down': 
     x: capture.heart.x
     y: capture.heart.y
-# number2.states.add
-#   'up':
-#     x: dp 10
-#     y: dp 68
-#     scale: 0.38
-#   'down': 
-#     x: capture.number.x
-#     y: capture.number.y
-#     scale: 1
 
 list.states.add
   'up':
@@ -389,7 +383,7 @@ executeButton.states.add
 list.on Events.DragStart, ()->
   list.dragStartY = list.y
 listDragMoveFunc = (e, obj)->
-  listMoving = [capture.list.y, 180*2]
+  listMoving = [capture.list.y, dp(180)]
   if capture.list.y > obj.layer.y # up
     executeButton.animate
       properties:
@@ -423,65 +417,90 @@ listDragMoveFunc = (e, obj)->
   else # down
     console.log 'down'
 
-list.on Events.DragMove, listDragMoveFunc
+scrollEndEvent = (e, d, layer)->
+  if layer.y > dp 10
+    listWrapper.scrollY = 0
+    scene 'down'
+    listWrapper.scroll = false
+    listWrapper.scrollVertical = false
+    list.draggable.enabled = true
+    list.off Events.DragMove, listDragMoveFunc
+    list.off Events.DragEnd, listDragEndFunc
+    list.on Events.DragMove, listDragMoveFunc
+    list.on Events.DragEnd, listDragEndFunc
+    # listWrapper.scrollToPoint(
+    #     x: 200, y: dp(0)
+    #     true
+    #     curve: "ease", time: 0.3
+    # )
+    # setDragSetting 'down'
+    # scene 'down'
+    # Utils.delay 1, ->
+    #   listWrapper.scroll = false
+    #   listWrapper.scrollVertical = false
+
+listWrapper.on Events.ScrollEnd, scrollEndEvent
+
+setListScrollSetting = (toggle)->
+  listWrapper.scroll = true
+  listWrapper.scrollVertical = true
+  listWrapper.scrollHorizontal = false
+
+setDragSetting = (direction)->
+  toggle = if direction is 'down' then true else false
+  list.draggable.enabled = toggle
+  list.off Events.DragMove, listDragMoveFunc
+  list.off Events.DragEnd, listDragEndFunc
+  list[if toggle then 'on' else 'off'] Events.DragMove, listDragMoveFunc
+  list[if toggle then 'on' else 'off'] Events.DragEnd, listDragEndFunc
+  setListScrollSetting toggle
 
 listDragEndFunc = (e, obj)->
-  direction = if (list.dragStartY - obj.layer.y) > 0 then 'up' else 'down'
+  movedALot = if ((list.dragStartY - obj.layer.y) > dp(30) or (list.dragStartY - obj.layer.y) < dp(-30)) then true else false
+  direction = if obj.layer._states._currentState is 'up' then 'up' else 'down'
+  if movedALot
+    direction = (if (list.dragStartY - obj.layer.y) > 0 then 'up' else 'down')
+    setDragSetting direction if direction is 'up'
   scene direction
 
+list.on Events.DragMove, listDragMoveFunc
 list.on Events.DragEnd, listDragEndFunc
 
-fakeCursor = new L
-  width: dp 64
-  height: dp 64
-  borderRadius: dp 100
-  backgroundColor: 'rgba(255,255,255,0.3)'
-  shadowY: 4
-  shadowBlur: 10
-  shadowColor: "rgba(0,0,0,0.4)"
+# fakeCursor = new L
+#   width: dp 64
+#   height: dp 64
+#   borderRadius: dp 100
+#   backgroundColor: 'rgba(255,255,255,0.3)'
+#   shadowY: 4
+#   shadowBlur: 10
+#   shadowColor: "rgba(0,0,0,0.4)"
 
-fakeCursor.center()
-fakeCursor.y += dp 200
+# fakeCursor.center()
+# fakeCursor.y += dp 200
 
-fakeCursor.states.add
-  in: 
-    scale: 1
-    opacity: 1
-  out: 
-    scale: 2
-    opacity: 0
-  tab:
-    scale: 0.8
+# fakeCursor.states.add
+#   in: 
+#     scale: 1
+#     opacity: 1
+#   out: 
+#     scale: 2
+#     opacity: 0
+#   tab:
+#     scale: 0.8
 
-Utils.delay 0.5, ->
-  fakeCursor.animate
-    properties:
-      y: dp 200
-    curve: 'spring(150,30,0)'
+# Utils.delay 0.5, ->
+#   fakeCursor.animate
+#     properties:
+#       y: dp 200
+#     curve: 'spring(150,30,0)'
 
-  list.animate
-    properties:
-      y: dp 240
-    curve: 'spring(150,30,0)'
+#   list.animate
+#     properties:
+#       y: dp 240
+#     curve: 'spring(150,30,0)'
 
-  listDragMoveFunc null, { layer: { y: 550 } }
+#   listDragMoveFunc null, { layer: { y: 550 } }
 
-Utils.delay 1, ->
-  fakeCursor.states.switch 'out'
-  scene 'up'
-
-# menuChange = (seq)->
-#   [list, number, contentText, executeButton].forEach (obj)->
-#     obj.animate
-#       properties:
-#         y: Framer.Screen.height
-#       curve: 'spring(200,30,0)'
-#   Utils.delay 0.2, ->
-#     [status].forEach (obj)->
-#       obj.animate
-#         properties:
-#           y: Framer.Screen.height
-#         curve: 'spring(100,50,0)'
-#   Utils.delay 1.3, ->
-#     [number, status, list, executeButton, contentText].forEach (obj)->
-#       obj.states.switch 'down'
+# Utils.delay 1, ->
+#   fakeCursor.states.switch 'out'
+#   scene 'up'

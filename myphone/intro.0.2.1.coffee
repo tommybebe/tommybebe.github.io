@@ -165,7 +165,7 @@ deviceIcon.centerX()
 
 rocketIcon = new L
   y: dp 60
-  width: dp 24
+  width: dp 23
   height: dp 35
   backgroundColor: 'transperant'
   image: './images/rocket.png'
