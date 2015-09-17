@@ -36,10 +36,26 @@
 			backface-visibility: hidden;
 			-webkit-backface-visibility: hidden;
 		}
+		#links {
+			position: absolute;
+			display: flex;
+		  flex-direction: column;
+		  justify-content: center;
+		  height: 100%;
+		  width: 100%;
+		  text-align: center;
+		}
+		#links li {
+			color: #447FEF;
+			cursor: pointer;
+			margin-top: 12px;
+			text-decoration: underline;
+		}
 		</style>
 
 	</head>
 	<body>
+		<ul id="links"></ul>
 		<script src="framer/coffee-script.js"></script>
 		<script src="framer/framer.js"></script>
 		<script src="mobile-detect.min.js"></script>
