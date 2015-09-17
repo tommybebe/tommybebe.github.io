@@ -49,8 +49,8 @@ aniOpt =
       friction: 20
       velocity: 10
   ripple:
-    time: 0.5
-    curve: 'ease-out'
+    time: 0.4
+    curve: 'cubic-bezier(0,1,1,1)'
 
 smallFontStyle = 
   'font-size': sp 10
@@ -133,9 +133,9 @@ class Button extends Layer
     @.states.animationOptions = aniOpt.spring
 
     if options.backgroundColor is 'transperant'
-      rippleColor = 'rgba(0, 0, 0, 0.2)'
+      rippleColor = 'rgba(0, 0, 0, 0.1)'
     else 
-      rippleColor = 'rgba(255, 255, 255, 0.3)'
+      rippleColor = 'rgba(255, 255, 255, 0.1)'
     rippleSize = if options.width > options.height then options.width else options.height
     # ripple event sequence.
     # 1. 터치 시작과 함께 터치된 곳에서 0x0 크기 + 0% 투명도를 + parent의 1.5배 scale ripple 이 하나 생겨난다.
@@ -145,9 +145,9 @@ class Button extends Layer
     # 5. 단, 완전히 ripple이 커지기 전에 release 이벤트가 일어나면, 커지는 애니메이션을 기다린 후 뒤의 애니메이션을 진행한다.
     ripple = new Layer width:rippleSize, height:rippleSize, backgroundColor: rippleColor
     ripple.superLayer = @
-    ripple.borderRadius = '50%'
-    ripple.states.add 'focus', scale: 2, opacity: 1
-    ripple.states.add 'blur', scale: 2.4, opacity: 0
+    ripple.borderRadius = @width
+    ripple.states.add 'focus', scale: 1.5, opacity: 1
+    ripple.states.add 'blur', scale: 1.6, opacity: 0
     ripple.states.add 'off', scale: 0, opacity: 0
     ripple.states.animationOptions = aniOpt.ripple
     ripple.states.switchInstant 'off'
@@ -364,7 +364,7 @@ listWrapper = new ScrollComponent
 listWrapper.scrollHorizontal = false
 listWrapper.scrollVertical = true
 
-class ListItem extends L
+class ListItem extends Button
   constructor: (seq, item)->
     super _.assign {}, 
       y: dp(seq * 64)

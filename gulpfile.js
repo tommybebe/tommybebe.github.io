@@ -26,7 +26,7 @@ gulp.task('mp', [], function(){
     }
   });
 
-  gulp.watch(['./myphone/*.*'], reload);
+  gulp.watch(['./myphone/**'], reload);
 });
 
 gulp.task('string', [], function(){
