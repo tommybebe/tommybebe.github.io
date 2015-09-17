@@ -159,7 +159,6 @@ class Button extends Layer
       ripple.states.switch 'blur'
 
     @on Events.TouchStart, (e, layer)->
-      e.stopPropagation()
       # ios 에서는 이벤트 객체가 뭔가 다름.
       if e.changedTouches and e.changedTouches[0]
         x = e.changedTouches[0].clientX - @x
@@ -364,10 +363,8 @@ listWrapper = new ScrollComponent
   index: 910
 listWrapper.scrollHorizontal = false
 listWrapper.scrollVertical = true
-listWrapper.mouseWheelEnabled = true
 
-
-class ListItem extends Button
+class ListItem extends L
   constructor: (seq, item)->
     super _.assign {}, 
       y: dp(seq * 64)
