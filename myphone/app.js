@@ -17,6 +17,15 @@ setTimeout(function(){
     ],
     appManage: [
       '0.1.0'
+    ],
+    appRecorvery: [
+      '0.1.0'
+    ],
+    setting: [
+      '0.1.0'
+    ],
+    appRecommand: [
+      '0.1.0'
     ]
   }
   var buttons = [];
@@ -61,6 +70,8 @@ setTimeout(function(){
 
         Framer.Device = new Framer.DeviceView();
         Framer.Device.setupContext();
+
+        window.location.hash = text;
 
         purge(dom);
         buttons.forEach(function(button){
