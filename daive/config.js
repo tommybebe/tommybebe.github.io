@@ -1,0 +1,1 @@
+window.routes = ["app.coffee"]
