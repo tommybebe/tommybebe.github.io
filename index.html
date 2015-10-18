@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Minwoo Lee</title>
     
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:800,600,400' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Droid+Serif:700|Lato' rel='stylesheet' type='text/css'>
     <style>
       * {
         padding: 0;
@@ -20,7 +20,7 @@
       }
       body {
         color: #333;
-        font-family: 'Open Sans', sans-serif;
+        font-family: 'Lato', sans-serif;
         text-align: center;
         background: #eee;
       }
@@ -39,7 +39,8 @@
       }
       h1.name {
         font-size: 64px;
-        font-weight: 800;
+        font-family: 'Droid Serif', serif;
+        font-weight: 700;
         width: 120%;
       }
       .links {
@@ -48,7 +49,7 @@
       }
       .link {
         font-size: 23px;
-        font-weight: 600;
+        font-weight: 400;
         margin-left: 10px;
         padding-left: 12px;
         border-left: 1px solid #999;
@@ -70,6 +71,32 @@
       .contact {
         margin-top: 24px;
       }
+      @media (max-width: 480px) {
+        h1.name {
+          font-size: 48px;
+          font-weight: 800;
+          width: 100%;
+        }
+        .link {
+          font-size: 14px;
+          font-weight: 600;
+          margin-left: 10px;
+          padding-left: 12px;
+          border-left: 1px solid #999;
+        }
+        .contact {
+          font-size: 14px;
+        }
+        .container {
+          width: 320px;
+          display: inline-block;
+          margin: -100px 0 0 -160px;
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          text-align: left;
+        }
+      }
     </style>
 
   </head>
@@ -81,7 +108,7 @@
           <a href="https://www.linkedin.com/profile/view?id=183557431">LinkedIn</a>
         </li>
         <li class="link">
-          <a href="https://www.facebook.com/minwoo.lee.313371">Facebook</a>
+          <a href="https://twitter.com/tommybebe">Twitter</a>
         </li>
         <li class="link">
           <a href="https://medium.com/@tommybebe">Medium</a>
