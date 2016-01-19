@@ -19,27 +19,6 @@ gulp.task('default', [], function(){
   gulp.watch(['./framer/app.coffee', './framer/index.html', './framer/styles/main.css'], reload);
 });
 
-gulp.task('setting', [], (cb)=>{
-  let pages = fs.readdirSync('./daive/pages');
-  let string = 'window.routes = '+JSON.stringify(pages.filter(page=> page.match(/coffee$/)));
-  fs.writeFile('./daive/config.js', string, (err)=>{
-    cb();
-  });
-});
-
-gulp.task('daive', ['setting'], function(){
-  browserSync({
-    notify: true,
-    open: false,
-    port: 9000,
-    server: {
-      baseDir: './daive'
-    }
-  });
-
-  gulp.watch(['./daive/**'], reload);
-});
-
 gulp.task('mp', [], function(){
   browserSync({
     notify: true,
@@ -53,15 +32,15 @@ gulp.task('mp', [], function(){
   gulp.watch(['./myphone/**'], reload);
 });
 
-gulp.task('string', [], function(){
+gulp.task('proto', [], function(){
   browserSync({
     notify: true,
     open: false,
     port: 9000,
     server: {
-      baseDir: './string'
+      baseDir: './prototypes'
     }
   });
 
-  gulp.watch(['./string/app.coffee', './string/index.html', './string/styles/main.css'], reload);
+  gulp.watch(['./prototypes/**'], reload);
 });

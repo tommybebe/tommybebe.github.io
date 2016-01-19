@@ -1,0 +1,6 @@
+{
+  "name": "framer-project",
+  "version": "0.0.1",
+  "description": "My Framer.js project.",
+  "framer": { "type": "project" }
+}

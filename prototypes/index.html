@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Hi! I'm Minwoo">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Minwoo Lee</title>
+    
+    <link href='https://fonts.googleapis.com/css?family=Droid+Serif:700|Lato' rel='stylesheet' type='text/css'>
+    <script src="./lib/bowser.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        font-size: 16px;
+        background: #f4f4f4;
+        display: flex;
+        justify-content: center;
+      }
+      .container {
+        width: 42rem;
+      }
+      h1 {
+        padding-bottom: 1rem;
+        font-family: 'Droid Serif', serif;
+        text-align: center;
+        color: #333;
+        font-size: 3rem;
+        border-bottom: 0.3rem solid #333;
+      }
+      ul {
+        list-style: none;
+        display: flex;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        padding: 0;
+      }
+      li {
+        width: 14rem;
+        padding: 0.6rem;
+      }
+      li img {
+        border: 0.4rem solid #333;
+        width: 100%;
+      }
+      @page {
+        margin: 0;
+        padding: 3cm;
+      }
+      @media print {
+        .gifs li { display: block; page-break-before: always; }
+      }
+      @media (max-width: 780px) {
+        html {
+          font-size: 14px;
+        }
+        .container {
+          width: 90%;
+          margin: 0 auto;
+        }
+        ul {
+          justify-content: center;
+        }
+      }
+      @media (max-width: 480px) {
+
+      }
+    </style>
+
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <h1 class="title">Prototypes</h1>
+      </div>
+    </header>
+    <div class="contents">
+      
+      <div class="container">
+        <ul class="gifs">
+          <li>
+            <a href="./01-Yet-another-toggle-animation">
+              <img src="./gifs/01.gif">
+            </a>
+          </li>
+          <li>
+            <a href="./02-connect-hotspot">
+              <img src="./gifs/02.gif">
+            </a>
+          </li>
+          <li>
+            <a href="http://minwoo-lee.com/myphone/#intro.0.2.1">
+              <img src="./gifs/03.gif">
+            </a>
+          </li>
+          <li>
+            <a href="http://minwoo-lee.com/myphone/#optimize.0.3.2">
+              <img src="./gifs/04.gif">
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>
