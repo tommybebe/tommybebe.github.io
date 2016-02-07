@@ -32,18 +32,21 @@
       }
       ul {
         list-style: none;
-        display: flex;
-        justify-content: flex-start;
-        flex-wrap: wrap;
+        -moz-column-width: 13em;
+        -webkit-column-width: 13em;
+        column-width: 13em;
+        -moz-column-gap: 1em;
+        -webkit-column-gap: 1em;
+        column-gap: 1em;
         padding: 0;
-      }
-      li {
-        width: 14rem;
-        padding: 0.6rem;
       }
       li img {
         border: 0.4rem solid #333;
         width: 100%;
+        margin-bottom: 0.6rem;
+      }
+      li a {
+        display: block
       }
       @page {
         margin: 0;
