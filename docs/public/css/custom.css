@@ -1,0 +1,21 @@
+h1,h2,h3 {
+    margin-top: 4em;
+}
+
+.post-subtitle {
+  display: block;
+  margin-top: -.5rem;
+  margin-bottom: 3rem;
+  color: #9a9a9a;
+}
+
+
+img[alt=small] { 
+    width: 50%;
+}
+img[alt=medium] { 
+    width: 75%;
+}
+img[alt=large] { 
+    width: 100%;
+}
