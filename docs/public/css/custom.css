@@ -9,7 +9,6 @@ h1,h2,h3 {
   color: #9a9a9a;
 }
 
-
 img[alt=small] { 
     width: 50%;
 }
@@ -18,4 +17,13 @@ img[alt=medium] {
 }
 img[alt=large] { 
     width: 100%;
+}
+em {
+    font-size: .8em;
+    display: block;
+    margin-top: -12px;
+    margin-bottom: 12px;
+    font-style: normal;
+    text-align: center;
+    color:;
 }

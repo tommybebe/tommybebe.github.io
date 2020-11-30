@@ -97,13 +97,13 @@ Google Analytics 4 속성은 베타 버전이었던 앱+웹 속성의 정식 명
 
 1. 계정과 속성 생성
     - 가장 먼저 Google Analytics 계정 생성부터 진행한다.
-        ![medium](/assets/2020/ga-create-account-1.png) *계정이 없는 경우 첫 페이지*
-        ![medium](/assets/2020/ga-create-account-2.png) *계정 이름 설정*
+        ![large](/assets/2020/ga-create-account-1.png) *계정이 없는 경우 첫 페이지*
+        ![large](/assets/2020/ga-create-account-2.png) *계정 이름 설정*
     - 속성을 생성한다.
-        ![medium](/assets/2020/ga-create-property.png) 
+        ![large](/assets/2020/ga-create-property.png) 
 2. 스트림 생성
     - 속성에 연결할 스트림을 생성한다.
-        ![medium](/assets/2020/ga-stream-add.png)
+        ![large](/assets/2020/ga-stream-add.png)
     - 스트림의 URL, 이름을 지정한 뒤 생성을 완료한다. 
 3. 태그 추가
     - 생성한 스트림에 스크립트 삽입을 위한 코드 스니펫이 제공된다. 해당 코드를 웹사이트의 해더에 삽입한다.
@@ -127,20 +127,20 @@ Google Analytics 4 속성은 베타 버전이었던 앱+웹 속성의 정식 명
     1. 스크립트 실행 확인
         - 배포 이후 브라우저에서 웹페이지로 이동하여 스크립트가 정상적으로 삽입되었는지 확인한다.
         - 웹 사이트에 스크립트 삽입을 확인한다. 크롬 브라우저 → 검사 → html 영역에서 삽입된 스크립트가 헤더 영역에 있는지 확인한다.
-            ![medium](/assets/2020/ga-script-added.png)
+            ![large](/assets/2020/ga-script-added.png)
     2. 콘솔 출력 확인
         - [디버그 도구](https://chrome.google.com/webstore/detail/google-analytics-debugger/jnkmfdileelhofjcijamephohjechhna)를 설치한다.
         - 디버그 모드를 활성화한다. (클릭하면 On/Off 토글된다.)
             ![small](/assets/2020/ga-extention.png)
         - 활성화 이후 콘솔을 확인하면 GA에 전달되고 있는 모든 정보들을 확인할 수 있다.
-            ![medium](/assets/2020/ga-extention-activated.png)
+            ![large](/assets/2020/ga-extention-activated.png)
     3. 디버그뷰 보고서 확인
         - 메뉴 → DebigView 메뉴로 이동한다. 현재 디버그 모드가 활성화된 기기의 이벤트 스트림을 확인할 수 있다.
-            ![medium](/assets/2020/ga-debugview.png)
+            ![large](/assets/2020/ga-debugview.png)
         - 각 파라미터를 선택하여 실제 입력한 매개변수의 값을 확인할 수 있다. 
     4. 실시간 보고서 확인
         - 메뉴 → 실시간 메뉴로 이동한다. 실시간 개요 페이지에서 현재 접속 중인 사용자 전체를 확인할 수 있다.
-            ![medium](/assets/2020/ga-live.png)
+            ![large](/assets/2020/ga-live.png)
 
     
 
