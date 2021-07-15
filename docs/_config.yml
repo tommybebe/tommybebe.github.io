@@ -1,24 +1,23 @@
-# Setup
-title:               Minwoo
-tagline:             "writings"
-description:         'Awe - some'
-url:                 https://tommybebe.github.io
-baseurl:             ''
-paginate:            5
-permalink:           pretty
-
-# About/contact
+title: Minwoo
+tagline: writings
+description: Awe - some
+url: 'https://tommybebe.github.io'
+baseurl: ''
+paginate: 5
+permalink: pretty
 author:
-  name:              Minwoo
-  url:               https://tommybebe.github.io
-  email:             hansupanda@gmail.com
-
-# Gems
+  name: Minwoo
+  url: 'https://tommybebe.github.io'
+  email: hansupanda@gmail.com
 plugins:
   - jekyll-paginate
   - jekyll-seo-tag
   - jekyll-sitemap
-
-# Custom vars
-version:             1.1.0
+version: 1.1.0
 google_tagmanager_id: GTM-KTQDN3B
+markdown: kramdown
+kramdown:
+    highlighter: rouge
+    syntax_highlighter_opts:
+        block:
+            line_numbers: true
