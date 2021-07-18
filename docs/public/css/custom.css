@@ -1,8 +1,12 @@
+html, body { 
+  height: 100%;
+}
 h1 {
     margin-top: 8em;
 }
 h2,h3 {
-    margin-top: 4em;
+    margin-top: 2em;
+    padding-top: 2em;
 }
 
 .post-subtitle {
@@ -50,4 +54,25 @@ em {
 .rouge-table { 
   display: flex; 
   overflow: scroll;
+}
+.toc { 
+  position: sticky;
+  align-self: flex-start;
+  top: 240px;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  width: 220px;
+  list-style: none;
+  padding: 0 0 1em 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: .9em;
+  line-height: 1.8em;
+}
+.toc ul {
+  list-style: none;
+}
+.toc a { 
+  color: #333;
 }
